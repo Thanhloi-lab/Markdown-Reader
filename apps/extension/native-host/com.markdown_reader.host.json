@@ -1,0 +1,10 @@
+{
+  "name": "com.markdown_reader.host",
+  "description": "Markdown Reader Native Messaging Host",
+  "path": "C:\\Users\\LoiLAK\\OneDrive\\Desktop\\Projects\\MarkdownReader\\apps\\extension\\native-host\\MarkdownHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://kfhipamojeldcpnbgfkgidjedmdbnjdl/",
+    "chrome-extension://hlkcloaggenjkafgjabgpelepgifhcgf/"
+  ]
+}

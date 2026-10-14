@@ -1,0 +1,19 @@
+{
+  "name": "markdown-reader-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-platform Markdown Reader and Formatter with dynamic theming and outline viewer",
+  "scripts": {
+    "dev:web": "pnpm --filter @markdown-reader/web dev",
+    "build:web": "pnpm --filter @markdown-reader/web build",
+    "build:extension": "pnpm --filter @markdown-reader/extension build",
+    "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "pnpm@12.11.2"
+}

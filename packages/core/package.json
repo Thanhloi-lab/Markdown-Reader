@@ -1,0 +1,18 @@
+{
+  "name": "@markdown-reader/core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "github-slugger": "^2.0.0",
+    "prettier": "^3.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

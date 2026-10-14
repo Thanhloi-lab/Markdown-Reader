@@ -1,0 +1,209 @@
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Định nghĩa màu thanh cuộn (Scrollbar) tương thích cả Light & Dark mode */
+:root {
+  --scrollbar-track: rgba(0, 0, 0, 0.04);
+  --scrollbar-thumb: #94a3b8; /* Slate-400 rõ nét trên nền sáng */
+  --scrollbar-thumb-hover: #64748b; /* Slate-500 khi rê chuột */
+}
+
+.dark {
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.28); /* Trắng 28% rõ ràng trên nền tối */
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48); /* Trắng 48% khi hover */
+}
+
+/* Thanh cuộn tùy chỉnh rõ nét, dễ nắm kéo */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.15s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* KaTeX equation display adjustments */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+/* ==========================================================================
+   Syntax Highlighting (Theme matching screenshot: Obsidian / Tokyo Night)
+   ========================================================================== */
+
+/* Dark Mode Tokens (Mặc định) */
+.hljs {
+  color: #cdd3df;
+  background: transparent;
+}
+
+/* Keywords: function, if, return, const, let, var, import, export,... (Tím nhạt / Lavender) */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #c084fc;
+  font-weight: 500;
+}
+
+/* Function names and methods: factorial, log,... (Xanh da trời / Sky Blue) */
+.hljs-title.function_,
+.hljs-title.function_ .hljs-title,
+.hljs-function .hljs-title {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+/* Parameters, attributes and variables: n, num,... (Màu cam đào / Coral) */
+.hljs-params,
+.hljs-attr,
+.hljs-variable {
+  color: #f87171;
+}
+
+/* Built-in types and classes: number, string, boolean,... (Vàng hổ phách / Amber) */
+.hljs-built_in,
+.hljs-type,
+.hljs-title.class_ {
+  color: #fcd34d;
+}
+
+/* Numbers: 0, 1, 5,... (Cam rực / Orange) */
+.hljs-number {
+  color: #fb923c;
+}
+
+/* Strings and template strings: `The factorial...`, "...", '...' (Xanh lá ngọc / Emerald Green) */
+.hljs-string {
+  color: #4ade80;
+}
+
+/* Template string substitutions: ${...} (Xanh dịu / Soft Blue) */
+.hljs-subst {
+  color: #93c5fd;
+}
+
+/* Comments: // Some comments with Indented code,... (Xám Slate muted) */
+.hljs-comment,
+.hljs-quote {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Operators & Punctuation: ===, *, -, +, =, {, }, (, ) (Xám xanh nhạt) */
+.hljs-operator,
+.hljs-punctuation {
+  color: #94a3b8;
+}
+
+/* Object properties & language variables: console, this, window,... */
+.hljs-property,
+.hljs-variable.language_ {
+  color: #38bdf8;
+}
+
+/* Literals: true, false, null, undefined */
+.hljs-literal {
+  color: #f472b6;
+}
+
+/* Meta, decorators, preprocessors */
+.hljs-meta {
+  color: #a78bfa;
+}
+
+/* HTML / XML tags & names */
+.hljs-tag,
+.hljs-name {
+  color: #c084fc;
+}
+
+.hljs-tag .hljs-attr {
+  color: #38bdf8;
+}
+
+.hljs-tag .hljs-string {
+  color: #4ade80;
+}
+
+/* ==========================================================================
+   Light Mode Syntax Highlighting (Tương phản cao trên nền sáng)
+   ========================================================================== */
+:root:not(.dark) .hljs {
+  color: #1e293b;
+}
+
+:root:not(.dark) .hljs-keyword,
+:root:not(.dark) .hljs-selector-tag {
+  color: #7c3aed; /* Purple-600 */
+}
+
+:root:not(.dark) .hljs-title.function_,
+:root:not(.dark) .hljs-function .hljs-title {
+  color: #0284c7; /* Sky-600 */
+}
+
+:root:not(.dark) .hljs-params,
+:root:not(.dark) .hljs-attr,
+:root:not(.dark) .hljs-variable {
+  color: #dc2626; /* Red-600 */
+}
+
+:root:not(.dark) .hljs-built_in,
+:root:not(.dark) .hljs-type,
+:root:not(.dark) .hljs-title.class_ {
+  color: #d97706; /* Amber-600 */
+}
+
+:root:not(.dark) .hljs-number {
+  color: #ea580c; /* Orange-600 */
+}
+
+:root:not(.dark) .hljs-string {
+  color: #16a34a; /* Green-600 */
+}
+
+:root:not(.dark) .hljs-subst {
+  color: #0284c7;
+}
+
+:root:not(.dark) .hljs-comment,
+:root:not(.dark) .hljs-quote {
+  color: #64748b; /* Slate-500 */
+  font-style: italic;
+}
+
+:root:not(.dark) .hljs-operator,
+:root:not(.dark) .hljs-punctuation {
+  color: #475569;
+}
+
+:root:not(.dark) .hljs-property,
+:root:not(.dark) .hljs-variable.language_ {
+  color: #0369a1;
+}

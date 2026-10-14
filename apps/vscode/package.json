@@ -1,0 +1,47 @@
+{
+  "name": "markdown-reader-vscode",
+  "displayName": "Markdown Reader & Outline",
+  "description": "Modern Markdown reader with interactive Outline TOC and File Tree",
+  "version": "0.1.0",
+  "publisher": "markdown-reader",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Visualization"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "markdownReader.openPreview",
+        "title": "Markdown Reader: Open Outline & Preview",
+        "icon": "$(book)"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "markdownReader.customEditor",
+        "displayName": "Markdown Reader",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ],
+        "priority": "option"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.7.3"
+  }
+}
