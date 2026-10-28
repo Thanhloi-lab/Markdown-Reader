@@ -28,12 +28,21 @@ export interface DiagramThemeConfig {
   background?: string;
 }
 
+export interface FontOption {
+  id: string;
+  name: string;
+  provider: 'Apple' | 'Google' | 'Microsoft' | 'Universal';
+  fontFamily: string;
+  description: string;
+}
+
 export interface TypographyConfig {
   fontFamily: string;
   headingFontFamily: string;
   codeFontFamily: string;
   fontSize: string;
   lineHeight: string;
+  fontId?: string;
 }
 
 export interface ThemeConfig {

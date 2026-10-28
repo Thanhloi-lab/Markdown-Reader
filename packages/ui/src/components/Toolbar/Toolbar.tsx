@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Wand2,
   Palette,
+  Settings,
   Eye,
   Edit3,
   Columns,
@@ -151,7 +152,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
         </div>
 
-        {/* Nút Tùy chỉnh Theme động */}
+        {/* Nút Cài đặt Giao diện & Phông chữ */}
         <button
           onClick={onOpenThemeCustomizer}
           className="p-1.5 rounded transition-colors"
@@ -164,9 +165,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
           }}
-          title="Tùy chỉnh màu sắc & theme động"
+          title="Cài đặt giao diện & phông chữ"
         >
-          <Palette size={16} />
+          <Settings size={16} />
         </button>
 
         {/* Nút Menu / Options */}

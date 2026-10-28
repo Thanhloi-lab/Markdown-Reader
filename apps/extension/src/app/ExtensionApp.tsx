@@ -40,15 +40,12 @@ export const ExtensionApp: React.FC<ExtensionAppProps> = ({ initialRawContent = 
       .filter(f => f && !f.includes(':') && !['Users', 'Windows', 'Program Files'].includes(f));
   }, [isLocalFile, pathParts]);
 
-  // Ưu tiên thư mục cấp dự án (ví dụ country=hk)
+  // Ưu tiên thư mục cấp dự án đặc biệt (ví dụ country=hk), còn lại mặc định là thư mục chứa tệp hiện tại (currentFolder)
   const bestCandidateFolder = useMemo(() => {
     if (candidateFolders.length === 0) return currentFolder;
     const special = candidateFolders.find(f => f.includes('='));
     if (special) return special;
-    if (candidateFolders.length >= 2) {
-      return candidateFolders[candidateFolders.length - 2];
-    }
-    return candidateFolders[candidateFolders.length - 1] || currentFolder;
+    return currentFolder;
   }, [candidateFolders, currentFolder]);
 
   const [content, setContent] = useState<string>(initialRawContent);
@@ -142,7 +139,9 @@ export const ExtensionApp: React.FC<ExtensionAppProps> = ({ initialRawContent = 
             {
               type: 'NATIVE_SCAN_DIRECTORY',
               path: dirPath,
-              activeFileName: currentName
+              activeFileName: currentName,
+              activeFilePath: activeFilePathRef.current || currentPath,
+              shallow: true
             },
             (response) => {
               if (chrome.runtime?.lastError) {
@@ -215,6 +214,75 @@ export const ExtensionApp: React.FC<ExtensionAppProps> = ({ initialRawContent = 
     },
     [currentName]
   );
+
+  // 1.1 Nạp tệp và thư mục con khi người dùng click mở một thư mục (Lazy loading theo yêu cầu)
+  const handleLoadFolderChildren = useCallback(async (folder: FileNode) => {
+    // a. Đặt trạng thái isLoading cho thư mục để hiển thị spinner
+    setFiles(prevFiles => {
+      const markLoading = (nodes: FileNode[]): FileNode[] =>
+        nodes.map(node => {
+          if (node.id === folder.id || node.path === folder.path) {
+            return { ...node, isLoading: true };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: markLoading(node.children) };
+          }
+          return node;
+        });
+      return markLoading(prevFiles);
+    });
+
+    try {
+      if (chrome?.runtime?.sendMessage) {
+        chrome.runtime.sendMessage(
+          {
+            type: 'NATIVE_SCAN_DIRECTORY',
+            path: folder.path,
+            shallow: true
+          },
+          (response) => {
+            if (response && response.success && response.rootNode) {
+              const children = response.rootNode.children || [];
+              setFiles(prevFiles => {
+                const updateChildren = (nodes: FileNode[]): FileNode[] =>
+                  nodes.map(node => {
+                    if (node.id === folder.id || node.path === folder.path) {
+                      return {
+                        ...node,
+                        children,
+                        isLoaded: true,
+                        isLoading: false
+                      };
+                    }
+                    if (node.children && node.children.length > 0) {
+                      return { ...node, children: updateChildren(node.children) };
+                    }
+                    return node;
+                  });
+                return updateChildren(prevFiles);
+              });
+            } else {
+              setFiles(prevFiles => {
+                const clearLoading = (nodes: FileNode[]): FileNode[] =>
+                  nodes.map(node => {
+                    if (node.id === folder.id || node.path === folder.path) {
+                      return { ...node, isLoading: false, isLoaded: true };
+                    }
+                    if (node.children && node.children.length > 0) {
+                      return { ...node, children: clearLoading(node.children) };
+                    }
+                    return node;
+                  });
+                return clearLoading(prevFiles);
+              });
+            }
+          }
+        );
+      }
+    } catch (e) {
+      console.warn('Lỗi lazy load thư mục con:', e);
+    }
+  }, []);
 
   // 2. Nạp cây thư mục từ FileSystemDirectoryHandle (Fallback)
   const loadDirectoryFromHandle = useCallback(
@@ -605,6 +673,7 @@ export const ExtensionApp: React.FC<ExtensionAppProps> = ({ initialRawContent = 
           hideFilesTab={isWebUrl}
           sidebarBanner={undefined}
           onBreadcrumbFolderClick={handleBreadcrumbFolderClick}
+          onLoadChildren={handleLoadFolderChildren}
         />
 
         {/* Lớp phủ trực quan khi Kéo - Thả thư mục (Drag & Drop Overlay) */}

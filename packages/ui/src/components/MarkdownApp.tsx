@@ -33,6 +33,7 @@ export interface MarkdownAppProps {
   hideFilesTab?: boolean;
   sidebarBanner?: React.ReactNode;
   onBreadcrumbFolderClick?: (folderName: string, folderIndex: number, fullFolderPath?: string) => void;
+  onLoadChildren?: (folder: FileNode) => Promise<void> | void;
 }
 
 export const MarkdownApp: React.FC<MarkdownAppProps> = ({
@@ -56,7 +57,8 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
   onContentChange,
   hideFilesTab = false,
   sidebarBanner,
-  onBreadcrumbFolderClick
+  onBreadcrumbFolderClick,
+  onLoadChildren
 }) => {
   const [content, setContent] = useState<string>(initialContent);
   const [fileName, setFileName] = useState<string>(initialFileName);
@@ -180,6 +182,7 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
         isSyncing={isSyncing}
         hideFilesTab={hideFilesTab}
         sidebarBanner={sidebarBanner}
+        onLoadChildren={onLoadChildren}
       />
 
       {/* Main Content Area */}

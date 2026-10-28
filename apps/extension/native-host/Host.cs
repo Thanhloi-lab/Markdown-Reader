@@ -10,10 +10,19 @@ namespace MarkdownReaderNativeHost
     {
         private static readonly HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".md", ".markdown", ".mdown", ".mkdn", ".mkd",
-            ".txt", ".json", ".xml", ".yaml", ".yml",
+            ".md", ".markdown", ".mdown", ".mkdn", ".mkd", ".mdx",
+            ".txt", ".json", ".xml", ".yaml", ".yml", ".toml", ".csv",
             ".js", ".ts", ".jsx", ".tsx", ".cs", ".py",
-            ".html", ".css", ".scss", ".sh", ".sql"
+            ".html", ".css", ".scss", ".sh", ".sql", ".log"
+        };
+
+        private static readonly HashSet<string> IgnoredDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "node_modules", "dist", "build", "out", "target", "bin", "obj",
+            ".next", ".nuxt", ".output", ".turbo", "vendor", "coverage", "pods",
+            "__pycache__", "appdata", "application data", "$recycle.bin",
+            "system volume information", "windows", "program files", "program files (x86)",
+            "temp", "cache", ".cache"
         };
 
         static void Main(string[] args)
@@ -70,7 +79,7 @@ namespace MarkdownReaderNativeHost
                         {
                             { "success", true },
                             { "pong", true },
-                            { "version", "1.1.0" }
+                            { "version", "1.3.0" }
                         });
                         continue;
                     }
@@ -79,6 +88,15 @@ namespace MarkdownReaderNativeHost
                     {
                         string rawPath = req.ContainsKey("path") ? req["path"].ToString() : "";
                         string dirPath = NormalizePath(rawPath);
+
+                        if (File.Exists(dirPath))
+                        {
+                            try
+                            {
+                                dirPath = Path.GetDirectoryName(dirPath);
+                            }
+                            catch { }
+                        }
 
                         if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath))
                         {
@@ -90,11 +108,30 @@ namespace MarkdownReaderNativeHost
                             continue;
                         }
 
+                        string activeFilePath = req.ContainsKey("activeFilePath") ? req["activeFilePath"].ToString() : "";
+                        string activeNorm = NormalizePath(activeFilePath).Replace('\\', '/');
+
+                        bool shallow = true; // Mặc định chế độ nạp theo cấp (shallow)
+                        if (req.ContainsKey("shallow"))
+                        {
+                            bool.TryParse(req["shallow"].ToString(), out shallow);
+                        }
+
+                        int maxDepth = 4;
+                        if (req.ContainsKey("maxDepth"))
+                        {
+                            int customDepth;
+                            if (int.TryParse(req["maxDepth"].ToString(), out customDepth) && customDepth > 0)
+                            {
+                                maxDepth = customDepth;
+                            }
+                        }
+
                         try
                         {
                             int fileCount = 0;
                             int dirCount = 0;
-                            var rootNode = ScanDirectory(dirPath, ref fileCount, ref dirCount);
+                            var rootNode = ScanDirectory(dirPath, ref fileCount, ref dirCount, 0, activeNorm, shallow, maxDepth, 2500);
 
                             SendResponse(writer, serializer, new Dictionary<string, object>
                             {
@@ -188,34 +225,36 @@ namespace MarkdownReaderNativeHost
             return p.TrimEnd('\\');
         }
 
-        private static Dictionary<string, object> ScanDirectory(string dirPath, ref int fileCount, ref int dirCount)
+        private static Dictionary<string, object> ScanDirectory(
+            string dirPath,
+            ref int fileCount,
+            ref int dirCount,
+            int currentDepth,
+            string activeNorm,
+            bool shallow,
+            int maxDepth,
+            int maxFiles)
         {
             var dirInfo = new DirectoryInfo(dirPath);
             var children = new List<Dictionary<string, object>>();
 
-            // Quét các thư mục con
-            try
-            {
-                foreach (var subDir in dirInfo.GetDirectories())
-                {
-                    if (subDir.Name.StartsWith(".") ||
-                        subDir.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
-                        subDir.Name.Equals("__pycache__", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    dirCount++;
-                    children.Add(ScanDirectory(subDir.FullName, ref fileCount, ref dirCount));
-                }
-            }
-            catch { }
-
-            // Quét các tập tin
+            // 1. Quét các tập tin trong thư mục hiện tại TRƯỚC TIÊN (Ưu tiên hiển thị tệp ở cấp cha)
             try
             {
                 foreach (var file in dirInfo.GetFiles())
                 {
+                    if (file.Name.StartsWith(".")) continue;
+
+                    try
+                    {
+                        if ((file.Attributes & FileAttributes.Hidden) != 0 ||
+                            (file.Attributes & FileAttributes.System) != 0)
+                        {
+                            continue;
+                        }
+                    }
+                    catch { }
+
                     if (SupportedExtensions.Contains(file.Extension))
                     {
                         fileCount++;
@@ -227,6 +266,81 @@ namespace MarkdownReaderNativeHost
                             { "path", normPath },
                             { "isDirectory", false }
                         });
+
+                        if (fileCount >= maxFiles)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // 2. Quét các thư mục con
+            try
+            {
+                foreach (var subDir in dirInfo.GetDirectories())
+                {
+                    if (subDir.Name.StartsWith(".") || IgnoredDirectories.Contains(subDir.Name))
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        if ((subDir.Attributes & FileAttributes.Hidden) != 0 ||
+                            (subDir.Attributes & FileAttributes.System) != 0)
+                        {
+                            continue;
+                        }
+                    }
+                    catch { }
+
+                    dirCount++;
+                    string normSubPath = subDir.FullName.Replace('\\', '/');
+
+                    bool isActiveBranch = !string.IsNullOrEmpty(activeNorm) &&
+                        (activeNorm.Equals(normSubPath, StringComparison.OrdinalIgnoreCase) ||
+                         activeNorm.StartsWith(normSubPath + "/", StringComparison.OrdinalIgnoreCase));
+
+                    // Nếu ở chế độ shallow và thư mục này không nằm trên đường dẫn tới active file: chỉ tạo node thư mục rỗng (lazy loading)
+                    if (shallow && !isActiveBranch)
+                    {
+                        children.Add(new Dictionary<string, object>
+                        {
+                            { "id", normSubPath },
+                            { "name", subDir.Name },
+                            { "path", normSubPath },
+                            { "isDirectory", true },
+                            { "isLoaded", false },
+                            { "children", new List<Dictionary<string, object>>() }
+                        });
+                    }
+                    else
+                    {
+                        // Nếu là nhánh chứa active file hoặc không bật shallow
+                        if (currentDepth < maxDepth && fileCount < maxFiles)
+                        {
+                            var subNode = ScanDirectory(subDir.FullName, ref fileCount, ref dirCount, currentDepth + 1, activeNorm, shallow, maxDepth, maxFiles);
+                            children.Add(subNode);
+
+                            if (fileCount >= maxFiles)
+                            {
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            children.Add(new Dictionary<string, object>
+                            {
+                                { "id", normSubPath },
+                                { "name", subDir.Name },
+                                { "path", normSubPath },
+                                { "isDirectory", true },
+                                { "isLoaded", false },
+                                { "children", new List<Dictionary<string, object>>() }
+                            });
+                        }
                     }
                 }
             }
@@ -248,6 +362,7 @@ namespace MarkdownReaderNativeHost
                 { "name", dirInfo.Name },
                 { "path", normalizedDirPath },
                 { "isDirectory", true },
+                { "isLoaded", true },
                 { "children", children }
             };
         }
@@ -256,6 +371,23 @@ namespace MarkdownReaderNativeHost
         {
             string json = serializer.Serialize(obj);
             byte[] bytes = Encoding.UTF8.GetBytes(json);
+
+            // Chrome Native Messaging giới hạn kích thước tối đa của mỗi tin nhắn là 1 MB (1,048,576 bytes)
+            if (bytes.Length > 1000 * 1024)
+            {
+                var errObj = new Dictionary<string, object>
+                {
+                    { "success", false },
+                    { "error", "Kích thước dữ liệu cây thư mục (" + (bytes.Length / 1024) + " KB) vượt quá giới hạn 1MB của trình duyệt. Vui lòng mở trực tiếp thư mục con." }
+                };
+                string errJson = serializer.Serialize(errObj);
+                byte[] errBytes = Encoding.UTF8.GetBytes(errJson);
+                writer.Write(errBytes.Length);
+                writer.Write(errBytes);
+                writer.Flush();
+                return;
+            }
+
             writer.Write(bytes.Length);
             writer.Write(bytes);
             writer.Flush();

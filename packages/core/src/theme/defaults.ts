@@ -1,4 +1,42 @@
-import { ThemeConfig } from './types';
+import { ThemeConfig, FontOption } from './types';
+
+export const supportedFonts: FontOption[] = [
+  {
+    id: 'apple-system',
+    name: 'Apple System (San Francisco)',
+    provider: 'Apple',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
+    description: 'Phông chữ hệ thống chuẩn của Apple, mượt mà và sắc nét'
+  },
+  {
+    id: 'google-roboto',
+    name: 'Google Roboto',
+    provider: 'Google',
+    fontFamily: '"Roboto", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+    description: 'Phông chữ hiện đại từ Google, hỗ trợ đa ngôn ngữ hoàn hảo, không lỗi dấu'
+  },
+  {
+    id: 'google-open-sans',
+    name: 'Google Open Sans',
+    provider: 'Google',
+    fontFamily: '"Open Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+    description: 'Phông chữ thân thiện, thoáng mắt, tối ưu cho đọc tài liệu'
+  },
+  {
+    id: 'microsoft-segoe-ui',
+    name: 'Microsoft Segoe UI',
+    provider: 'Microsoft',
+    fontFamily: '"Segoe UI", "Aptos", Tahoma, Geneva, Verdana, Arial, sans-serif',
+    description: 'Phông chữ tiêu chuẩn của Windows, cực kỳ ổn định và rõ nét'
+  },
+  {
+    id: 'inter',
+    name: 'Inter',
+    provider: 'Universal',
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    description: 'Phông chữ màn hình số hiện đại, thanh thoát và cân đối'
+  }
+];
 
 export const defaultDarkTheme: ThemeConfig = {
   id: 'obsidian-dark',
@@ -33,8 +71,9 @@ export const defaultDarkTheme: ThemeConfig = {
     background: '#0d0f14'
   },
   typography: {
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    headingFontFamily: 'Merriweather, Charter, Georgia, "Times New Roman", serif',
+    fontId: 'apple-system',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
+    headingFontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
     codeFontFamily: '"JetBrains Mono", "Fira Code", Consolas, Monaco, monospace',
     fontSize: '16px',
     lineHeight: '1.75'
@@ -72,8 +111,9 @@ export const defaultLightTheme: ThemeConfig = {
     background: '#ffffff'
   },
   typography: {
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    headingFontFamily: 'Merriweather, Charter, Georgia, serif',
+    fontId: 'apple-system',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
+    headingFontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
     codeFontFamily: '"JetBrains Mono", Consolas, monospace',
     fontSize: '16px',
     lineHeight: '1.75'

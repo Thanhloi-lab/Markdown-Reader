@@ -82,7 +82,9 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         color: 'var(--md-text-primary)',
         fontFamily: 'var(--md-font-family)',
         fontSize: 'var(--md-font-size)',
-        lineHeight: 'var(--md-line-height)'
+        lineHeight: 'var(--md-line-height)',
+        fontWeight: 400,
+        fontStyle: 'normal'
       }}
     >
       <div className="max-w-4xl mx-auto">

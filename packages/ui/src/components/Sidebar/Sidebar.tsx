@@ -33,6 +33,7 @@ interface SidebarProps {
   isSyncing?: boolean;
   hideFilesTab?: boolean;
   sidebarBanner?: React.ReactNode;
+  onLoadChildren?: (folder: FileNode) => Promise<void> | void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -54,7 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSync,
   isSyncing = false,
   hideFilesTab = false,
-  sidebarBanner
+  sidebarBanner,
+  onLoadChildren
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -315,6 +317,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isSyncing={isSyncing}
               searchFilter={searchFilter}
               banner={sidebarBanner}
+              onLoadChildren={onLoadChildren}
             />
           ) : (
             <TocTab

@@ -12,6 +12,21 @@ function sendMessage(msg) {
   try {
     const jsonStr = JSON.stringify(msg);
     const buffer = Buffer.from(jsonStr, 'utf8');
+
+    // Chrome Native Messaging giới hạn 1 MB (1,048,576 bytes)
+    if (buffer.length > 1000 * 1024) {
+      const errMsg = {
+        success: false,
+        error: `Kích thước dữ liệu cây thư mục (${Math.round(buffer.length / 1024)} KB) vượt quá giới hạn 1MB của trình duyệt. Vui lòng mở trực tiếp thư mục con.`
+      };
+      const errBuffer = Buffer.from(JSON.stringify(errMsg), 'utf8');
+      const errHeader = Buffer.alloc(4);
+      errHeader.writeUInt32LE(errBuffer.length, 0);
+      process.stdout.write(errHeader);
+      process.stdout.write(errBuffer);
+      return;
+    }
+
     const header = Buffer.alloc(4);
     header.writeUInt32LE(buffer.length, 0);
     process.stdout.write(header);
@@ -22,10 +37,18 @@ function sendMessage(msg) {
 }
 
 const SUPPORTED_EXTENSIONS = new Set([
-  '.md', '.markdown', '.mdown', '.mkdn', '.mkd',
-  '.txt', '.json', '.xml', '.yaml', '.yml',
+  '.md', '.markdown', '.mdown', '.mkdn', '.mkd', '.mdx',
+  '.txt', '.json', '.xml', '.yaml', '.yml', '.toml', '.csv',
   '.js', '.ts', '.jsx', '.tsx', '.cs', '.py',
-  '.html', '.css', '.scss', '.sh', '.sql'
+  '.html', '.css', '.scss', '.sh', '.sql', '.log'
+]);
+
+const IGNORED_DIRECTORIES = new Set([
+  'node_modules', 'dist', 'build', 'out', 'target', 'bin', 'obj',
+  '.next', '.nuxt', '.output', '.turbo', 'vendor', 'coverage', 'pods',
+  '__pycache__', 'appdata', 'application data', '$recycle.bin',
+  'system volume information', 'windows', 'program files', 'program files (x86)',
+  'temp', 'cache', '.cache'
 ]);
 
 function isSupported(filename) {
@@ -33,11 +56,12 @@ function isSupported(filename) {
   return SUPPORTED_EXTENSIONS.has(ext);
 }
 
-function scanDirRecursive(dirPath, activeFileName = '') {
+function scanDirSmart(dirPath, activeFilePath = '', shallow = true, maxDepth = 4, maxFiles = 2500) {
   let fileCount = 0;
   let dirCount = 0;
+  const normActive = activeFilePath ? activeFilePath.replace(/\\/g, '/').toLowerCase() : '';
 
-  function traverse(curDir, curRelPath) {
+  function traverse(curDir, currentDepth) {
     const children = [];
     let entries = [];
     try {
@@ -46,40 +70,68 @@ function scanDirRecursive(dirPath, activeFileName = '') {
       return children;
     }
 
-    for (const entry of entries) {
-      const fullPath = path.join(curDir, entry.name);
-      const relPath = curRelPath ? `${curRelPath}/${entry.name}` : entry.name;
-      const normalizedPath = fullPath.replace(/\\/g, '/');
+    // 1. Quét file trước
+    if (fileCount < maxFiles) {
+      for (const entry of entries) {
+        if (entry.isFile()) {
+          if (entry.name.startsWith('.')) continue;
+          if (isSupported(entry.name)) {
+            fileCount++;
+            const fullPath = path.join(curDir, entry.name).replace(/\\/g, '/');
+            children.push({
+              id: fullPath,
+              name: entry.name,
+              path: fullPath,
+              isDirectory: false
+            });
+            if (fileCount >= maxFiles) break;
+          }
+        }
+      }
+    }
 
+    // 2. Quét thư mục sau
+    for (const entry of entries) {
       if (entry.isDirectory()) {
-        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === '__pycache__') {
+        if (entry.name.startsWith('.') || IGNORED_DIRECTORIES.has(entry.name.toLowerCase())) {
           continue;
         }
         dirCount++;
-        const subChildren = traverse(fullPath, relPath);
-        children.push({
-          id: normalizedPath,
-          name: entry.name,
-          path: normalizedPath,
-          isDirectory: true,
-          children: subChildren
-        });
-      } else if (entry.isFile()) {
-        if (isSupported(entry.name)) {
-          fileCount++;
-          let content = undefined;
-          if (activeFileName && entry.name.toLowerCase() === activeFileName.toLowerCase()) {
-            try {
-              content = fs.readFileSync(fullPath, 'utf8');
-            } catch (e) {}
-          }
+        const fullPath = path.join(curDir, entry.name).replace(/\\/g, '/');
+        const normSub = fullPath.toLowerCase();
+        const isActiveBranch = normActive && (normActive === normSub || normActive.startsWith(normSub + '/'));
+
+        if (shallow && !isActiveBranch) {
           children.push({
-            id: normalizedPath,
+            id: fullPath,
             name: entry.name,
-            path: normalizedPath,
-            isDirectory: false,
-            content
+            path: fullPath,
+            isDirectory: true,
+            isLoaded: false,
+            children: []
           });
+        } else {
+          if (currentDepth < maxDepth && fileCount < maxFiles) {
+            const subChildren = traverse(fullPath, currentDepth + 1);
+            children.push({
+              id: fullPath,
+              name: entry.name,
+              path: fullPath,
+              isDirectory: true,
+              isLoaded: true,
+              children: subChildren
+            });
+            if (fileCount >= maxFiles) break;
+          } else {
+            children.push({
+              id: fullPath,
+              name: entry.name,
+              path: fullPath,
+              isDirectory: true,
+              isLoaded: false,
+              children: []
+            });
+          }
         }
       }
     }
@@ -92,7 +144,7 @@ function scanDirRecursive(dirPath, activeFileName = '') {
 
   const baseName = path.basename(dirPath) || dirPath;
   const normalizedRootPath = dirPath.replace(/\\/g, '/');
-  const children = traverse(dirPath, '');
+  const children = traverse(dirPath, 0);
 
   return {
     rootNode: {
@@ -100,6 +152,7 @@ function scanDirRecursive(dirPath, activeFileName = '') {
       name: baseName,
       path: normalizedRootPath,
       isDirectory: true,
+      isLoaded: true,
       children
     },
     fileCount,
@@ -115,7 +168,7 @@ process.stdin.on('data', (chunk) => {
   while (inputBuffer.length >= 4) {
     const msgLen = inputBuffer.readUInt32LE(0);
     if (inputBuffer.length < 4 + msgLen) {
-      break; // Chờ đủ dữ liệu
+      break;
     }
 
     const msgBuffer = inputBuffer.subarray(4, 4 + msgLen);
@@ -132,7 +185,7 @@ process.stdin.on('data', (chunk) => {
 
 function handleMessage(msg) {
   if (msg.action === 'ping') {
-    sendMessage({ success: true, pong: true, version: '1.0.0' });
+    sendMessage({ success: true, pong: true, version: '1.3.0' });
     return;
   }
 
@@ -143,13 +196,21 @@ function handleMessage(msg) {
     }
     targetPath = path.normalize(targetPath);
 
+    try {
+      if (fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()) {
+        targetPath = path.dirname(targetPath);
+      }
+    } catch {}
+
     if (!fs.existsSync(targetPath)) {
       sendMessage({ success: false, error: 'Thư mục không tồn tại: ' + targetPath });
       return;
     }
 
     try {
-      const res = scanDirRecursive(targetPath, msg.activeFileName || '');
+      const shallow = msg.shallow !== false;
+      const maxDepth = (msg.maxDepth && Number(msg.maxDepth) > 0) ? Number(msg.maxDepth) : 4;
+      const res = scanDirSmart(targetPath, msg.activeFilePath || '', shallow, maxDepth, 2500);
       sendMessage({
         success: true,
         rootNode: res.rootNode,

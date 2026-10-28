@@ -40,7 +40,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         {
           action: 'scanDirectory',
           path: message.path,
-          activeFileName: message.activeFileName
+          activeFileName: message.activeFileName,
+          activeFilePath: message.activeFilePath,
+          shallow: message.shallow !== false
         },
         (response) => {
           const err = chrome.runtime.lastError;

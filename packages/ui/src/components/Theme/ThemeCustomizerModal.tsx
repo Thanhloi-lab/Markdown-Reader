@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, RotateCcw, Palette, Check } from 'lucide-react';
+import { X, RotateCcw, Palette, Check, Settings, Type } from 'lucide-react';
+import { supportedFonts } from '@markdown-reader/core';
 import { useTheme } from '../../context/ThemeContext';
 
 interface ThemeCustomizerModalProps {
@@ -39,9 +40,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
           style={{ borderColor: 'var(--md-border)' }}
         >
           <div className="flex items-center gap-2">
-            <Palette size={18} style={{ color: 'var(--md-accent)' }} />
+            <Settings size={18} style={{ color: 'var(--md-accent)' }} />
             <h3 className="font-semibold text-base" style={{ color: 'var(--md-text-heading)' }}>
-              Tùy chỉnh Giao diện & Màu sắc động
+              Cài đặt Giao diện & Phông chữ
             </h3>
           </div>
           <button
@@ -183,8 +184,87 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             </div>
           </div>
 
-          {/* Typography */}
+          {/* Typography - Phông chữ & Cỡ chữ */}
           <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider opacity-70">
+                <Type size={14} style={{ color: 'var(--md-accent)' }} />
+                <span>Phông chữ đọc (Font Family)</span>
+              </label>
+              <span className="text-[11px] opacity-60">
+                5 phông chữ phổ thông • Đa ngôn ngữ
+              </span>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              {supportedFonts.map(font => {
+                const isSelected =
+                  theme.typography.fontId === font.id ||
+                  theme.typography.fontFamily === font.fontFamily;
+
+                return (
+                  <button
+                    key={font.id}
+                    type="button"
+                    onClick={() =>
+                      updateTypography({
+                        fontId: font.id,
+                        fontFamily: font.fontFamily,
+                        headingFontFamily: font.fontFamily
+                      })
+                    }
+                    className="w-full text-left p-3 rounded-lg border transition-all flex flex-col gap-1.5 cursor-pointer"
+                    style={{
+                      backgroundColor: isSelected ? 'var(--md-bg-active)' : 'var(--md-bg-primary)',
+                      borderColor: isSelected ? 'var(--md-accent)' : 'var(--md-border)',
+                      color: isSelected ? 'var(--md-accent)' : 'var(--md-text-primary)'
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-xs font-normal not-italic"
+                          style={{
+                            fontFamily: font.fontFamily,
+                            fontWeight: 400,
+                            fontStyle: 'normal'
+                          }}
+                        >
+                          {font.name}
+                        </span>
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded border font-normal not-italic"
+                          style={{
+                            borderColor: 'var(--md-border)',
+                            backgroundColor: 'var(--md-bg-secondary)',
+                            color: 'var(--md-text-secondary)',
+                            fontWeight: 400,
+                            fontStyle: 'normal'
+                          }}
+                        >
+                          {font.provider}
+                        </span>
+                      </div>
+                      {isSelected && <Check size={15} className="shrink-0" />}
+                    </div>
+
+                    {/* Dòng xem trước không bold, không nghiêng */}
+                    <div
+                      className="text-xs font-normal not-italic opacity-80 truncate"
+                      style={{
+                        fontFamily: font.fontFamily,
+                        fontWeight: 400,
+                        fontStyle: 'normal',
+                        color: 'var(--md-text-secondary)'
+                      }}
+                    >
+                      Cộng hòa Xã hội Chủ nghĩa Việt Nam • Markdown Reader 123
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
             <label className="block text-xs font-semibold uppercase tracking-wider mb-2 opacity-70">
               Cỡ chữ đọc (Font Size)
             </label>

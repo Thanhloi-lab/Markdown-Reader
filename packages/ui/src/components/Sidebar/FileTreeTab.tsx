@@ -20,6 +20,8 @@ export interface FileNode {
   isDirectory: boolean;
   children?: FileNode[];
   content?: string;
+  isLoaded?: boolean;
+  isLoading?: boolean;
 }
 
 interface FileTreeTabProps {
@@ -35,6 +37,7 @@ interface FileTreeTabProps {
   isSyncing?: boolean;
   searchFilter?: string;
   banner?: React.ReactNode;
+  onLoadChildren?: (folder: FileNode) => Promise<void> | void;
 }
 
 export const FileTreeTab: React.FC<FileTreeTabProps> = ({
@@ -49,7 +52,8 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
   onSync,
   isSyncing = false,
   searchFilter = '',
-  banner
+  banner,
+  onLoadChildren
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     root: true
@@ -160,7 +164,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
     }));
   }, [activeFilePath]);
 
-  // 4. Tự động cuộn đến file đang active trong danh sách
+  // 4. Tự động cuộn đến file đang active trong danh sách CHỈ KHI activeFilePath thay đổi (Không cuộn lại khi toggle folder khác)
   useEffect(() => {
     if (!activeFilePath || !containerRef.current) return;
 
@@ -175,14 +179,24 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
     }, 120);
 
     return () => clearTimeout(timer);
-  }, [activeFilePath, expandedFolders]);
+  }, [activeFilePath]);
 
-  const toggleFolder = (id: string, e: React.MouseEvent) => {
+  const toggleFolder = async (node: FileNode, e: React.MouseEvent) => {
     e.stopPropagation();
+    const isCurrentlyExpanded = expandedFolders[node.id] ?? false;
+    const willExpand = !isCurrentlyExpanded;
+
     setExpandedFolders(prev => ({
       ...prev,
-      [id]: prev[id] !== undefined ? !prev[id] : false
+      [node.id]: willExpand
     }));
+
+    // Nếu người dùng mở thư mục và thư mục này chưa được nạp con (lazy loading)
+    if (willExpand && (!node.children || node.children.length === 0) && node.isLoaded === false) {
+      if (onLoadChildren) {
+        await onLoadChildren(node);
+      }
+    }
   };
 
   // Kiểm tra xem một thư mục có chứa ít nhất 1 file thỏa mãn các bộ lọc không
@@ -201,7 +215,8 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
   };
 
   const renderNode = (node: FileNode, depth = 0, isRootLevel = false) => {
-    const isExpanded = expandedFolders[node.id] ?? true;
+    // Mặc định: Chỉ mở thư mục gốc (depth === 0), các thư mục con mặc định ĐÓNG (collapse)
+    const isExpanded = expandedFolders[node.id] ?? (isRootLevel || depth === 0);
     const isActive = activeFilePath === node.path;
 
     if (node.isDirectory) {
@@ -212,7 +227,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
       return (
         <div key={node.id} className="select-none">
           <div
-            onClick={e => toggleFolder(node.id, e)}
+            onClick={e => toggleFolder(node, e)}
             className={`flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer text-xs transition-all duration-150 group hover:translate-x-0.5 ${
               isRootLevel ? 'font-semibold tracking-wide border-t first:border-t-0 mt-1.5 pt-1.5' : ''
             }`}
@@ -236,7 +251,9 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
           >
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
               {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              {isExpanded ? (
+              {node.isLoading ? (
+                <RefreshCw size={14} className="text-indigo-400 shrink-0 animate-spin" />
+              ) : isExpanded ? (
                 <FolderOpen size={14} className="text-amber-400 shrink-0" />
               ) : (
                 <Folder size={14} className="text-amber-400 shrink-0" />
@@ -259,8 +276,19 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             )}
           </div>
 
-          {isExpanded && node.children && (
-            <div>{node.children.map(child => renderNode(child, depth + 1, false))}</div>
+          {isExpanded && (
+            <div>
+              {node.children && node.children.length > 0 ? (
+                node.children.map(child => renderNode(child, depth + 1, false))
+              ) : node.isLoaded ? (
+                <div
+                  className="py-1.5 text-[11px] italic opacity-50 select-none"
+                  style={{ paddingLeft: `${(depth + 1) * 14 + 18}px`, color: 'var(--md-text-muted)' }}
+                >
+                  (Thư mục trống)
+                </div>
+              ) : null}
+            </div>
           )}
         </div>
       );
