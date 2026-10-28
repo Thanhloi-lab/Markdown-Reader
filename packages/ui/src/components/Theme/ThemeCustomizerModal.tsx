@@ -136,6 +136,29 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                   <span className="text-xs font-mono">{theme.colors.accent}</span>
                 </div>
               </div>
+
+              <div>
+                <span className="text-xs block mb-1 opacity-80">Màu chữ highlight (`inline code`):</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={theme.colors.codeText || '#82b1ff'}
+                    onChange={e => updateThemeColors({ codeText: e.target.value })}
+                    className="w-8 h-8 rounded border cursor-pointer bg-transparent"
+                  />
+                  <code
+                    className="px-1.5 py-0.5 rounded text-[11px] font-mono border"
+                    style={{
+                      backgroundColor: 'var(--md-bg-code)',
+                      borderColor: 'var(--md-border)',
+                      color: theme.colors.codeText || '#82b1ff'
+                    }}
+                  >
+                    `abc`
+                  </code>
+                  <span className="text-xs font-mono">{theme.colors.codeText}</span>
+                </div>
+              </div>
             </div>
           </div>
 

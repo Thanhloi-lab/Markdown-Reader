@@ -38,6 +38,8 @@ interface FileTreeTabProps {
   searchFilter?: string;
   banner?: React.ReactNode;
   onLoadChildren?: (folder: FileNode) => Promise<void> | void;
+  expandedFolders?: Record<string, boolean>;
+  onExpandedFoldersChange?: (expanded: Record<string, boolean>) => void;
 }
 
 export const FileTreeTab: React.FC<FileTreeTabProps> = ({
@@ -53,11 +55,25 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
   isSyncing = false,
   searchFilter = '',
   banner,
-  onLoadChildren
+  onLoadChildren,
+  expandedFolders: propExpandedFolders,
+  onExpandedFoldersChange
 }) => {
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
+  const [internalExpandedFolders, setInternalExpandedFolders] = useState<Record<string, boolean>>({
     root: true
   });
+  const expandedFolders = propExpandedFolders ?? internalExpandedFolders;
+  const setExpandedFolders = (updater: React.SetStateAction<Record<string, boolean>>) => {
+    if (onExpandedFoldersChange) {
+      if (typeof updater === 'function') {
+        onExpandedFoldersChange(updater(expandedFolders));
+      } else {
+        onExpandedFoldersChange(updater);
+      }
+    } else {
+      setInternalExpandedFolders(updater);
+    }
+  };
   const [showOnlyPinned, setShowOnlyPinned] = useState(false);
   const [isPinnedSectionExpanded, setIsPinnedSectionExpanded] = useState(true);
 

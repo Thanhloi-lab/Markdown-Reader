@@ -61,6 +61,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
 
+  // Lưu trạng thái các thư mục đã mở rộng để không bị reset khi chuyển đổi giữa tab Files và TOC
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
+    root: true
+  });
+
   // Tự động chuyển về tab toc nếu tab files bị ẩn
   useEffect(() => {
     if (hideFilesTab && activeTab === 'files') {
@@ -303,7 +308,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         style={{ direction: 'rtl' }}
       >
         <div style={{ direction: 'ltr' }} className="px-1.5 py-1">
-          {activeTab === 'files' ? (
+          {/* Giữ cả 2 tab được mount trong DOM để bảo toàn 100% trạng thái mở thư mục, tệp đã chọn và vị trí cuộn */}
+          <div style={{ display: activeTab === 'files' ? 'block' : 'none' }}>
             <FileTreeTab
               files={files}
               activeFilePath={activeFilePath}
@@ -318,15 +324,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               searchFilter={searchFilter}
               banner={sidebarBanner}
               onLoadChildren={onLoadChildren}
+              expandedFolders={expandedFolders}
+              onExpandedFoldersChange={setExpandedFolders}
             />
-          ) : (
+          </div>
+          <div style={{ display: activeTab === 'toc' ? 'block' : 'none' }}>
             <TocTab
               items={tocItems}
               activeSlug={activeHeadingSlug}
               onSelectHeading={onSelectHeading}
               searchFilter={searchFilter}
             />
-          )}
+          </div>
         </div>
       </div>
 

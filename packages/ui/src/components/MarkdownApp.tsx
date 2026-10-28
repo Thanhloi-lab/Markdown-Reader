@@ -101,11 +101,41 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
   // Xử lý khi người dùng chọn tiêu đề trên TOC
   const handleSelectHeading = (slug: string) => {
     setActiveHeadingSlug(slug);
-    if (viewerContainerRef.current) {
-      const headingEl = viewerContainerRef.current.querySelector(`#${slug}`);
+    if (!slug) return;
+
+    try {
+      // 1. Ưu tiên document.getElementById vì đây là cách an toàn và tối ưu nhất,
+      // không bị lỗi CSS syntax khi ID bắt đầu bằng chữ số (0-9) hay chứa ký tự đặc biệt
+      let headingEl: HTMLElement | null = document.getElementById(slug);
+
+      // 2. Nếu getElementById không tìm thấy hoặc cần tìm trong viewer container,
+      // dùng querySelector với attribute selector [id="..."] kết hợp CSS.escape
+      if (!headingEl && viewerContainerRef.current) {
+        try {
+          const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(slug) : slug.replace(/"/g, '\\"');
+          headingEl = viewerContainerRef.current.querySelector(`[id="${escaped}"]`);
+        } catch {
+          // Bỏ qua nếu selector escape không hợp lệ
+        }
+      }
+
+      // 3. Fallback: duyệt trực tiếp danh sách heading trong viewer container
+      if (!headingEl && viewerContainerRef.current) {
+        const allHeadings = viewerContainerRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        for (let i = 0; i < allHeadings.length; i++) {
+          const el = allHeadings[i] as HTMLElement;
+          if (el.id === slug) {
+            headingEl = el;
+            break;
+          }
+        }
+      }
+
       if (headingEl) {
         headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+    } catch (err) {
+      console.warn('Lỗi khi cuộn tới heading:', err);
     }
   };
 

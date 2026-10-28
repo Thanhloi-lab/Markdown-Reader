@@ -19,6 +19,16 @@ interface MarkdownViewerProps {
 
 const InPreContext = React.createContext<boolean>(false);
 
+const getChildrenText = (c: any): string => {
+  if (typeof c === 'string') return c;
+  if (typeof c === 'number') return String(c);
+  if (Array.isArray(c)) return c.map(getChildrenText).join('');
+  if (c && typeof c === 'object' && c.props && c.props.children) {
+    return getChildrenText(c.props.children);
+  }
+  return '';
+};
+
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   content,
   onActiveHeadingChange,
@@ -94,7 +104,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           components={{
             // Heading 1
             h1: ({ node, children, ...props }) => {
-              const text = String(children);
+              const text = getChildrenText(children);
               const id = props.id || slugger.slug(text);
               return (
                 <h1
@@ -113,7 +123,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             },
             // Heading 2
             h2: ({ node, children, ...props }) => {
-              const text = String(children);
+              const text = getChildrenText(children);
               const id = props.id || slugger.slug(text);
               return (
                 <h2
@@ -132,7 +142,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             },
             // Heading 3
             h3: ({ node, children, ...props }) => {
-              const text = String(children);
+              const text = getChildrenText(children);
               const id = props.id || slugger.slug(text);
               return (
                 <h3
@@ -151,7 +161,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             // Heading 4, 5, 6
             h4: ({ node, children, ...props }) => (
               <h4
-                id={props.id || slugger.slug(String(children))}
+                id={props.id || slugger.slug(getChildrenText(children))}
                 className="text-lg font-medium mt-6 mb-2 scroll-mt-6"
                 style={{ color: 'var(--md-text-heading)', fontFamily: 'var(--md-heading-font-family)' }}
                 {...props}
@@ -161,7 +171,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             ),
             h5: ({ node, children, ...props }) => (
               <h5
-                id={props.id || slugger.slug(String(children))}
+                id={props.id || slugger.slug(getChildrenText(children))}
                 className="text-base font-medium mt-5 mb-2 scroll-mt-6"
                 style={{ color: 'var(--md-text-heading)' }}
                 {...props}
@@ -171,7 +181,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             ),
             h6: ({ node, children, ...props }) => (
               <h6
-                id={props.id || slugger.slug(String(children))}
+                id={props.id || slugger.slug(getChildrenText(children))}
                 className="text-sm font-medium mt-4 mb-2 text-neutral-400 scroll-mt-6"
                 {...props}
               >
@@ -206,14 +216,14 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                 );
               }
 
-              // Inline code badge giống ảnh mẫu: mềm mại với màu xanh tím nhẹ nhàng
+              // Inline code badge: Sử dụng biến theme linh hoạt và dễ đọc ở cả Light & Dark mode
               return (
                 <code
                   className="px-1.5 py-0.5 mx-0.5 rounded text-[0.875em] font-mono font-medium inline-block border"
                   style={{
-                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                    borderColor: 'rgba(99, 102, 241, 0.25)',
-                    color: '#93c5fd'
+                    backgroundColor: 'var(--md-bg-code)',
+                    borderColor: 'var(--md-border)',
+                    color: 'var(--md-code-text)'
                   }}
                   {...props}
                 >

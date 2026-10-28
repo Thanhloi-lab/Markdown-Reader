@@ -100,7 +100,7 @@ export const defaultLightTheme: ThemeConfig = {
     accent: '#4f46e5',
     accentHover: '#4338ca',
     accentForeground: '#ffffff',
-    codeText: '#2563eb'
+    codeText: '#1d4ed8'
   },
   diagram: {
     theme: 'default',
