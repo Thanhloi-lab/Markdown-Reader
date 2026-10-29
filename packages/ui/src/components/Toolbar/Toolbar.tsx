@@ -8,8 +8,10 @@ import {
   Columns,
   Menu,
   FileText,
-  Folder
+  Folder,
+  Globe
 } from 'lucide-react';
+import { useTranslation } from '../../context/I18nContext';
 
 export type ViewMode = 'preview' | 'split' | 'editor';
 
@@ -34,6 +36,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isFormatting = false,
   onBreadcrumbFolderClick
 }) => {
+  const { locale, toggleLocale, t } = useTranslation();
+
   // Phân tích đường dẫn breadcrumb: folder/subfolder/file.md
   const pathParts = filePath ? filePath.split(/[\\/]/) : [fileName];
   const folders = pathParts.slice(0, -1);
@@ -62,7 +66,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         ? 'hover:underline cursor-pointer hover:text-[var(--md-accent)]'
                         : 'cursor-default'
                     }`}
-                    title={onBreadcrumbFolderClick ? `Nhấp để mở thư mục ${folder}` : folder}
+                    title={onBreadcrumbFolderClick ? `${t.toolbar.openFolderTooltip} ${folder}` : folder}
                   >
                     <Folder size={12} className="text-amber-400 shrink-0" />
                     <span className="truncate">{folder}</span>
@@ -103,10 +107,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           onMouseLeave={e => {
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
           }}
-          title={fileName.toLowerCase().endsWith('.json') ? 'Định dạng JSON (Làm đẹp & Căn lề)' : 'Định dạng / Làm đẹp tài liệu'}
+          title={fileName.toLowerCase().endsWith('.json') ? t.toolbar.formatJsonTooltip : t.toolbar.formatTooltip}
         >
           <Wand2 size={14} className={isFormatting ? 'animate-spin' : ''} style={{ color: 'var(--md-accent)' }} />
-          <span>{isFormatting ? 'Đang format...' : 'Format'}</span>
+          <span>{isFormatting ? t.toolbar.formatting : t.toolbar.format}</span>
         </button>
 
         {/* Nút Chuyển chế độ xem: Preview / Split / Editor */}
@@ -124,7 +128,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               backgroundColor: viewMode === 'preview' ? 'var(--md-bg-active)' : 'transparent',
               color: viewMode === 'preview' ? 'var(--md-accent)' : 'var(--md-text-muted)'
             }}
-            title="Chỉ đọc (Reader Preview)"
+            title={t.toolbar.previewMode}
           >
             <Eye size={14} />
           </button>
@@ -135,7 +139,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               backgroundColor: viewMode === 'split' ? 'var(--md-bg-active)' : 'transparent',
               color: viewMode === 'split' ? 'var(--md-accent)' : 'var(--md-text-muted)'
             }}
-            title="Xem song song (Split Preview & Edit)"
+            title={t.toolbar.splitMode}
           >
             <Columns size={14} />
           </button>
@@ -146,11 +150,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               backgroundColor: viewMode === 'editor' ? 'var(--md-bg-active)' : 'transparent',
               color: viewMode === 'editor' ? 'var(--md-accent)' : 'var(--md-text-muted)'
             }}
-            title="Soạn thảo nhanh (Raw Editor)"
+            title={t.toolbar.editorMode}
           >
             <Edit3 size={14} />
           </button>
         </div>
+
+        {/* Nút Chuyển nhanh Ngôn ngữ VI / EN */}
+        <button
+          onClick={toggleLocale}
+          className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold border transition-colors cursor-pointer"
+          style={{
+            borderColor: 'var(--md-border)',
+            backgroundColor: 'var(--md-bg-primary)',
+            color: 'var(--md-text-primary)'
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--md-bg-hover)';
+            (e.currentTarget as HTMLElement).style.color = 'var(--md-accent)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--md-bg-primary)';
+            (e.currentTarget as HTMLElement).style.color = 'var(--md-text-primary)';
+          }}
+          title={`${t.common.language}: ${locale === 'vi' ? 'Tiếng Việt' : 'English'}`}
+        >
+          <Globe size={13} style={{ color: 'var(--md-accent)' }} />
+          <span>{locale.toUpperCase()}</span>
+        </button>
 
         {/* Nút Cài đặt Giao diện & Phông chữ */}
         <button
@@ -165,7 +192,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
           }}
-          title="Cài đặt giao diện & phông chữ"
+          title={t.toolbar.settingsTooltip}
         >
           <Settings size={16} />
         </button>
@@ -182,7 +209,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
           }}
-          title="Tùy chọn khác"
+          title={t.toolbar.otherOptions}
         >
           <Menu size={16} />
         </button>

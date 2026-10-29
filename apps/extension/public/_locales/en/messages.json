@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Markdown Reader & Outline",
+    "description": "Extension name"
+  },
+  "appDesc": {
+    "message": "Premium Markdown reader and formatter with file tree, live TOC, and syntax highlighting",
+    "description": "Extension description"
+  }
+}

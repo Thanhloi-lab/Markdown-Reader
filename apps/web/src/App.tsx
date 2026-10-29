@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ThemeProvider,
+  I18nProvider,
   MarkdownApp,
   FileNode,
   isSupportedFile,
@@ -388,27 +389,29 @@ export function App() {
   }
 
   return (
-    <ThemeProvider>
-      <MarkdownApp
-        initialContent={currentFileContent}
-        initialFileName={currentFileName}
-        activeFilePath={currentFilePath}
-        files={files}
-        pinnedFilePaths={pinnedFilePaths}
-        onTogglePin={handleTogglePin}
-        missingPath={missingPath}
-        onClearMissingPath={() => setMissingPath(null)}
-        onOpenFolder={handleAddFolder}
-        onAddFolder={handleAddFolder}
-        onRemoveFolder={handleRemoveFolder}
-        onSync={() => handleSyncWorkspace(true)}
-        isSyncing={isSyncing}
-        syncNotifications={syncNotifications}
-        onDismissSyncNotification={handleDismissNotification}
-        onFileSelect={handleFileSelect}
-        onNavigateLink={handleNavigateLink}
-        onContentChange={setCurrentFileContent}
-      />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <MarkdownApp
+          initialContent={currentFileContent}
+          initialFileName={currentFileName}
+          activeFilePath={currentFilePath}
+          files={files}
+          pinnedFilePaths={pinnedFilePaths}
+          onTogglePin={handleTogglePin}
+          missingPath={missingPath}
+          onClearMissingPath={() => setMissingPath(null)}
+          onOpenFolder={handleAddFolder}
+          onAddFolder={handleAddFolder}
+          onRemoveFolder={handleRemoveFolder}
+          onSync={() => handleSyncWorkspace(true)}
+          isSyncing={isSyncing}
+          syncNotifications={syncNotifications}
+          onDismissSyncNotification={handleDismissNotification}
+          onFileSelect={handleFileSelect}
+          onNavigateLink={handleNavigateLink}
+          onContentChange={setCurrentFileContent}
+        />
+      </ThemeProvider>
+    </I18nProvider>
   );
 }

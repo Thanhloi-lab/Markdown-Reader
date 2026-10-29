@@ -7,13 +7,16 @@ import {
   RefreshCw,
   FolderOpen,
   FileText,
-  Sparkles
+  Sparkles,
+  Globe
 } from 'lucide-react';
+import { I18nProvider, useTranslation } from '@markdown-reader/ui';
 import { checkFileSchemeAccess, openExtensionSettings } from '../utils/permissionManager';
 
 export const Onboarding: React.FC = () => {
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState<boolean>(false);
+  const { locale, setLocale, toggleLocale, t } = useTranslation();
 
   const performCheck = async () => {
     setIsChecking(true);
@@ -30,17 +33,39 @@ export const Onboarding: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-6">
+    <div className="max-w-2xl mx-auto py-12 px-6 font-sans">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <FileText size={24} className="text-white" />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <FileText size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              {t.extension.onboardingTitle} <Sparkles size={18} className="text-amber-400" />
+            </h1>
+            <p className="text-xs text-neutral-400">{t.extension.onboardingSubtitle}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            Markdown Reader <Sparkles size={18} className="text-amber-400" />
-          </h1>
-          <p className="text-xs text-neutral-400">Trình đọc và định dạng Markdown đa nền tảng</p>
+
+        {/* Nút chuyển đổi ngôn ngữ */}
+        <div className="flex items-center gap-1.5 p-1 rounded-lg border border-[#1f242e] bg-[#12151c]">
+          <button
+            onClick={() => setLocale('vi')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              locale === 'vi' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            🇻🇳 Tiếng Việt
+          </button>
+          <button
+            onClick={() => setLocale('en')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              locale === 'en' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            🇺🇸 English
+          </button>
         </div>
       </div>
 
@@ -59,14 +84,10 @@ export const Onboarding: React.FC = () => {
 
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-white mb-1">
-              {isAllowed
-                ? 'Đã bật quyền truy cập file máy tính thành công!'
-                : 'Yêu cầu kích hoạt: Cho phép truy cập vào các URL của tệp'}
+              {isAllowed ? t.extension.onboardingReadyTitle : t.extension.onboardingRequireTitle}
             </h2>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {isAllowed
-                ? 'Bạn đã sẵn sàng! Bây giờ bất cứ khi nào bạn mở file .md hoặc kéo thả file từ máy tính vào trình duyệt, tiện ích sẽ tự động định dạng và nạp cây thư mục đầy đủ.'
-                : 'Trình duyệt Chromium (Chrome/Edge/Brave) yêu cầu bạn bật tùy chọn "Allow access to file URLs" để tiện ích có thể đọc và định dạng các file .md trực tiếp từ ổ đĩa của bạn.'}
+              {isAllowed ? t.extension.onboardingReadyDesc : t.extension.onboardingRequireDesc}
             </p>
 
             <div className="mt-5 flex items-center gap-3 flex-wrap">
@@ -76,7 +97,7 @@ export const Onboarding: React.FC = () => {
                   className="flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/30"
                 >
                   <ExternalLink size={14} />
-                  <span>Mở trang Cài đặt để Bật quyền</span>
+                  <span>{t.extension.onboardingOpenSettingsBtn}</span>
                 </button>
               ) : null}
 
@@ -86,7 +107,11 @@ export const Onboarding: React.FC = () => {
                 className="flex items-center gap-2 py-2 px-3.5 rounded-xl text-xs font-medium bg-[#161c27] hover:bg-[#1f2635] text-neutral-300 border border-[#2b3548] transition-all"
               >
                 <RefreshCw size={13} className={isChecking ? 'animate-spin text-indigo-400' : ''} />
-                <span>{isChecking ? 'Đang kiểm tra...' : 'Kiểm tra lại quyền'}</span>
+                <span>
+                  {isChecking
+                    ? (locale === 'vi' ? 'Đang kiểm tra...' : 'Checking...')
+                    : (locale === 'vi' ? 'Kiểm tra lại quyền' : 'Check permissions again')}
+                </span>
               </button>
             </div>
           </div>
@@ -96,8 +121,8 @@ export const Onboarding: React.FC = () => {
       {/* Hướng dẫn 3 bước */}
       {!isAllowed && (
         <div className="bg-[#12151c] border border-[#1f242e] rounded-2xl p-6 mb-8">
-          <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider text-neutral-400">
-            Hướng dẫn bật quyền trong 30 giây
+          <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-neutral-400">
+            {locale === 'vi' ? 'Hướng dẫn kích hoạt trong 30 giây' : 'Quick 30-Second Setup Guide'}
           </h3>
 
           <div className="space-y-4 text-xs">
@@ -106,8 +131,16 @@ export const Onboarding: React.FC = () => {
                 1
               </span>
               <div>
-                <p className="text-white font-medium">Nhấp nút "Mở trang Cài đặt để Bật quyền" ở trên</p>
-                <p className="text-neutral-400 mt-0.5">Trình duyệt sẽ mở trang thông tin chi tiết của tiện ích Markdown Reader.</p>
+                <p className="text-white font-medium">
+                  {locale === 'vi'
+                    ? 'Nhấp nút "Mở trang Cài đặt để Bật quyền" ở trên'
+                    : 'Click "Open Settings to Grant Permission" above'}
+                </p>
+                <p className="text-neutral-400 mt-0.5">
+                  {locale === 'vi'
+                    ? 'Trình duyệt sẽ mở trang quản lý chi tiết của tiện ích Markdown Reader.'
+                    : 'Browser will open the details page for Markdown Reader extension.'}
+                </p>
               </div>
             </div>
 
@@ -116,8 +149,15 @@ export const Onboarding: React.FC = () => {
                 2
               </span>
               <div>
-                <p className="text-white font-medium">Cuộn xuống và tìm mục: <code className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Allow access to file URLs</code></p>
-                <p className="text-neutral-400 mt-0.5">(Hoặc tiếng Việt: <em>"Cho phép truy cập vào các URL của tệp"</em>)</p>
+                <p className="text-white font-medium">
+                  {locale === 'vi' ? 'Cuộn xuống và tìm mục: ' : 'Scroll down to find: '}
+                  <code className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Allow access to file URLs</code>
+                </p>
+                <p className="text-neutral-400 mt-0.5">
+                  {locale === 'vi'
+                    ? '(Hoặc giao diện tiếng Việt: "Cho phép truy cập vào các URL của tệp")'
+                    : '(In Vietnamese Chrome: "Cho phép truy cập vào các URL của tệp")'}
+                </p>
               </div>
             </div>
 
@@ -126,8 +166,14 @@ export const Onboarding: React.FC = () => {
                 3
               </span>
               <div>
-                <p className="text-white font-medium">Gạt công tắc sang BẬT (ON)</p>
-                <p className="text-neutral-400 mt-0.5">Quay lại đây và bạn sẽ thấy trạng thái chuyển sang màu xanh ngay lập tức!</p>
+                <p className="text-white font-medium">
+                  {locale === 'vi' ? 'Gạt công tắc sang BẬT (ON)' : 'Toggle switch to ON'}
+                </p>
+                <p className="text-neutral-400 mt-0.5">
+                  {locale === 'vi'
+                    ? 'Quay lại đây và bạn sẽ thấy trạng thái chuyển sang màu xanh ngay lập tức!'
+                    : 'Return here and you will see the status turn green immediately!'}
+                </p>
               </div>
             </div>
           </div>
@@ -139,20 +185,24 @@ export const Onboarding: React.FC = () => {
         <div className="p-4 rounded-xl border border-[#1f242e] bg-[#12151c]/60">
           <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold mb-1">
             <ExternalLink size={14} />
-            <span>Chế độ Web URL</span>
+            <span>{locale === 'vi' ? 'Chế độ Web URL' : 'Web URL Mode'}</span>
           </div>
           <p className="text-xs text-neutral-400 leading-relaxed">
-            Tự động format khi đọc link Markdown online trên web. Tối ưu hiển thị gọn gàng, chỉ bật mục lục TOC và ẩn cây thư mục.
+            {locale === 'vi'
+              ? 'Tự động format khi đọc link Markdown online trên web. Tối ưu hiển thị gọn gàng, chỉ bật mục lục TOC và ẩn cây thư mục.'
+              : 'Automatically formats online Markdown web links. Clean view with outline TOC enabled and file tree hidden.'}
           </p>
         </div>
 
         <div className="p-4 rounded-xl border border-[#1f242e] bg-[#12151c]/60">
           <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-1">
             <FolderOpen size={14} />
-            <span>Chế độ File máy tính</span>
+            <span>{locale === 'vi' ? 'Chế độ File máy tính' : 'Local File Mode'}</span>
           </div>
           <p className="text-xs text-neutral-400 leading-relaxed">
-            Tự động nạp cây thư mục đa tầng, ghi nhớ file ghim và tự động giải phóng RAM khi chuyển sang dự án khác.
+            {locale === 'vi'
+              ? 'Tự động nạp cây thư mục đa tầng, ghi nhớ file ghim và tự động giải phóng RAM khi chuyển sang dự án khác.'
+              : 'Loads multi-level directory tree, remembers pinned files, and cleans up RAM automatically when switching projects.'}
           </p>
         </div>
       </div>
@@ -162,5 +212,9 @@ export const Onboarding: React.FC = () => {
 
 const root = document.getElementById('root');
 if (root) {
-  createRoot(root).render(<Onboarding />);
+  createRoot(root).render(
+    <I18nProvider>
+      <Onboarding />
+    </I18nProvider>
+  );
 }

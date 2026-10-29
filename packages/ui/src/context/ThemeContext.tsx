@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ThemeConfig,
   defaultDarkTheme,
@@ -35,7 +35,7 @@ export const ThemeProvider: React.FC<{
     return initialTheme;
   });
 
-  const saveTheme = (newTheme: ThemeConfig) => {
+  const saveTheme = useCallback((newTheme: ThemeConfig) => {
     setThemeState(newTheme);
     if (typeof window !== 'undefined') {
       try {
@@ -44,41 +44,71 @@ export const ThemeProvider: React.FC<{
         console.warn('Cannot save theme to localStorage:', e);
       }
     }
-  };
+  }, []);
 
-  const updateThemeColors = (colors: Partial<ThemeConfig['colors']>) => {
-    saveTheme({
-      ...theme,
-      colors: {
-        ...theme.colors,
-        ...colors
+  const updateThemeColors = useCallback((colors: Partial<ThemeConfig['colors']>) => {
+    setThemeState(prev => {
+      const updated = {
+        ...prev,
+        colors: {
+          ...prev.colors,
+          ...colors
+        }
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('markdown_reader_theme', JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Cannot save theme to localStorage:', e);
+        }
       }
+      return updated;
     });
-  };
+  }, []);
 
-  const updateDiagramTheme = (diagram: Partial<ThemeConfig['diagram']>) => {
-    saveTheme({
-      ...theme,
-      diagram: {
-        ...theme.diagram,
-        ...diagram
+  const updateDiagramTheme = useCallback((diagram: Partial<ThemeConfig['diagram']>) => {
+    setThemeState(prev => {
+      const updated = {
+        ...prev,
+        diagram: {
+          ...prev.diagram,
+          ...diagram
+        }
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('markdown_reader_theme', JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Cannot save theme to localStorage:', e);
+        }
       }
+      return updated;
     });
-  };
+  }, []);
 
-  const updateTypography = (typography: Partial<ThemeConfig['typography']>) => {
-    saveTheme({
-      ...theme,
-      typography: {
-        ...theme.typography,
-        ...typography
+  const updateTypography = useCallback((typography: Partial<ThemeConfig['typography']>) => {
+    setThemeState(prev => {
+      const updated = {
+        ...prev,
+        typography: {
+          ...prev.typography,
+          ...typography
+        }
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('markdown_reader_theme', JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Cannot save theme to localStorage:', e);
+        }
       }
+      return updated;
     });
-  };
+  }, []);
 
-  const resetToDefault = () => {
+  const resetToDefault = useCallback(() => {
     saveTheme(defaultDarkTheme);
-  };
+  }, [saveTheme]);
 
   // Áp dụng CSS variables vào root element mỗi khi theme thay đổi
   useEffect(() => {
@@ -97,18 +127,25 @@ export const ThemeProvider: React.FC<{
     }
   }, [theme]);
 
+  const contextValue = useMemo(() => ({
+    theme,
+    setTheme: saveTheme,
+    updateThemeColors,
+    updateDiagramTheme,
+    updateTypography,
+    resetToDefault,
+    availableThemes
+  }), [
+    theme,
+    saveTheme,
+    updateThemeColors,
+    updateDiagramTheme,
+    updateTypography,
+    resetToDefault
+  ]);
+
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        setTheme: saveTheme,
-        updateThemeColors,
-        updateDiagramTheme,
-        updateTypography,
-        resetToDefault,
-        availableThemes
-      }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

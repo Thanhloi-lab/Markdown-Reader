@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, FolderPlus, X } from 'lucide-react';
+import { useTranslation } from '../../context/I18nContext';
 
 interface MissingFileToastProps {
   missingPath: string | null;
@@ -12,6 +13,8 @@ export const MissingFileToast: React.FC<MissingFileToastProps> = ({
   onClose,
   onAddFolder
 }) => {
+  const { locale, t } = useTranslation();
+
   if (!missingPath) return null;
 
   return (
@@ -29,10 +32,14 @@ export const MissingFileToast: React.FC<MissingFileToastProps> = ({
             <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-sm font-semibold text-red-400">
-                Không tìm thấy tệp trong Workspace
+                {t.notifications.missingFileTitle}
               </h4>
               <p className="text-xs leading-relaxed mt-1 opacity-80 break-all">
-                Liên kết trỏ tới tệp <code className="px-1.5 py-0.5 rounded font-mono bg-black/20 text-indigo-400">{missingPath}</code> nhưng tệp này chưa nằm trong bất kỳ thư mục nào bạn đang mở.
+                {locale === 'vi' ? (
+                  <>Liên kết trỏ tới tệp <code className="px-1.5 py-0.5 rounded font-mono bg-black/20 text-indigo-400">{missingPath}</code> nhưng tệp này chưa nằm trong bất kỳ thư mục nào bạn đang mở.</>
+                ) : (
+                  <>The link points to <code className="px-1.5 py-0.5 rounded font-mono bg-black/20 text-indigo-400">{missingPath}</code>, but this file is not in any of your opened workspace folders.</>
+                )}
               </p>
             </div>
           </div>
@@ -49,7 +56,7 @@ export const MissingFileToast: React.FC<MissingFileToastProps> = ({
             onClick={onClose}
             className="px-3 py-1.5 rounded text-xs transition-colors hover:bg-white/5 opacity-70 hover:opacity-100"
           >
-            Bỏ qua
+            {t.common.cancel}
           </button>
           {onAddFolder && (
             <button
@@ -61,7 +68,7 @@ export const MissingFileToast: React.FC<MissingFileToastProps> = ({
               style={{ backgroundColor: 'var(--md-accent)' }}
             >
               <FolderPlus size={13} />
-              <span>Thêm thư mục chứa tệp này...</span>
+              <span>{t.notifications.addFolderAction}</span>
             </button>
           )}
         </div>

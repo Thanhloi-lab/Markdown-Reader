@@ -10,11 +10,13 @@ import {
   FolderOpen,
   Globe
 } from 'lucide-react';
+import { I18nProvider, useTranslation } from '@markdown-reader/ui';
 import { checkFileSchemeAccess, openExtensionSettings } from '../utils/permissionManager';
 
 export const Popup: React.FC = () => {
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>('');
+  const { locale, toggleLocale, t } = useTranslation();
 
   useEffect(() => {
     checkFileSchemeAccess().then(setIsAllowed);
@@ -48,28 +50,37 @@ export const Popup: React.FC = () => {
           <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
             <FileText size={15} />
           </div>
-          <span className="font-bold text-sm text-white">Markdown Reader</span>
+          <span className="font-bold text-sm text-white">{t.extension.appName}</span>
         </div>
-        <button
-          onClick={openOnboarding}
-          className="text-neutral-400 hover:text-white transition-colors"
-          title="Trang hướng dẫn"
-        >
-          <HelpCircle size={15} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleLocale}
+            className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#12151c] border border-[#1f242e] text-neutral-300 hover:text-white hover:border-indigo-500 transition-colors cursor-pointer"
+            title={`${t.common.language}: ${locale === 'vi' ? 'Tiếng Việt' : 'English'}`}
+          >
+            {locale.toUpperCase()}
+          </button>
+          <button
+            onClick={openOnboarding}
+            className="text-neutral-400 hover:text-white transition-colors"
+            title={t.extension.guidePage}
+          >
+            <HelpCircle size={15} />
+          </button>
+        </div>
       </div>
 
       {/* Trạng thái quyền File URL */}
       <div className="p-3 rounded-xl bg-[#12151c] border border-[#1f242e]">
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-neutral-400 font-medium">Quyền đọc file máy tính:</span>
+          <span className="text-neutral-400 font-medium">{t.extension.fileAccessPerm}</span>
           {isAllowed ? (
             <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-              <CheckCircle2 size={12} /> Đã bật
+              <CheckCircle2 size={12} /> {t.extension.permissionGranted}
             </span>
           ) : (
             <span className="flex items-center gap-1 text-amber-400 font-semibold">
-              <AlertTriangle size={12} /> Chưa bật
+              <AlertTriangle size={12} /> {t.extension.permissionDenied}
             </span>
           )}
         </div>
@@ -80,7 +91,7 @@ export const Popup: React.FC = () => {
             className="w-full mt-2.5 py-1.5 px-3 rounded-lg text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-1.5 transition-colors"
           >
             <ExternalLink size={12} />
-            <span>Kích hoạt trong Cài đặt</span>
+            <span>{t.extension.enableInSettings}</span>
           </button>
         )}
       </div>
@@ -91,25 +102,39 @@ export const Popup: React.FC = () => {
           {isLocalFile ? (
             <>
               <FolderOpen size={13} className="text-amber-400" />
-              <span>Chế độ: <strong>File cục bộ (Máy tính)</strong></span>
+              <span>
+                {locale === 'vi' ? (
+                  <>Chế độ: <strong>File cục bộ (Máy tính)</strong></>
+                ) : (
+                  <>Mode: <strong>Local File (Computer)</strong></>
+                )}
+              </span>
             </>
           ) : isWebUrl ? (
             <>
               <Globe size={13} className="text-indigo-400" />
-              <span>Chế độ: <strong>Web URL (Chỉ hiện TOC)</strong></span>
+              <span>
+                {locale === 'vi' ? (
+                  <>Chế độ: <strong>Web URL (Chỉ hiện TOC)</strong></>
+                ) : (
+                  <>Mode: <strong>Web URL (TOC only)</strong></>
+                )}
+              </span>
             </>
           ) : (
-            <span>Trạng thái: Sẵn sàng</span>
+            <span>{locale === 'vi' ? 'Trạng thái: Sẵn sàng' : 'Status: Ready'}</span>
           )}
         </div>
 
         {isMarkdown ? (
           <div className="text-[11px] text-emerald-400 font-mono truncate bg-emerald-500/10 py-1 px-2 rounded border border-emerald-500/20">
-            ✓ Đang đọc tài liệu Markdown
+            {locale === 'vi' ? '✓ Đang đọc tài liệu Markdown' : '✓ Viewing Markdown document'}
           </div>
         ) : (
           <p className="text-[11px] text-neutral-400">
-            Mở hoặc kéo thả bất kỳ file <code>.md</code> nào vào trình duyệt để tự động xem dạng formatted.
+            {locale === 'vi'
+              ? 'Mở hoặc kéo thả bất kỳ file .md nào vào trình duyệt để tự động xem dạng formatted.'
+              : 'Open or drop any .md file into browser to view formatted.'}
           </p>
         )}
       </div>
@@ -118,9 +143,9 @@ export const Popup: React.FC = () => {
       <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1">
         <span className="flex items-center gap-1.5">
           <Cpu size={12} className="text-indigo-400" />
-          <span>Tự động dọn RAM khi đổi root:</span>
+          <span>{locale === 'vi' ? 'Tự động dọn RAM khi đổi root:' : 'Auto RAM cleanup:'}</span>
         </span>
-        <span className="text-emerald-400 font-semibold">Hoạt động</span>
+        <span className="text-emerald-400 font-semibold">{locale === 'vi' ? 'Hoạt động' : 'Active'}</span>
       </div>
     </div>
   );
@@ -128,5 +153,9 @@ export const Popup: React.FC = () => {
 
 const root = document.getElementById('root');
 if (root) {
-  createRoot(root).render(<Popup />);
+  createRoot(root).render(
+    <I18nProvider>
+      <Popup />
+    </I18nProvider>
+  );
 }

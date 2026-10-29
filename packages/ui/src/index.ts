@@ -1,4 +1,5 @@
 export * from './context/ThemeContext';
+export * from './context/I18nContext';
 export * from './components/Sidebar/Sidebar';
 export * from './components/Sidebar/TocTab';
 export * from './components/Sidebar/FileTreeTab';

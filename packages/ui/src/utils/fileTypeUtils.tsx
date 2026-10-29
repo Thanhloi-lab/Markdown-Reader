@@ -11,6 +11,7 @@ import {
   Terminal,
   File
 } from 'lucide-react';
+import { detectContentLanguage } from '@markdown-reader/core';
 
 export interface FileTypeInfo {
   extension: string;
@@ -37,14 +38,147 @@ export const SUPPORTED_EXTENSIONS = [
 
 export function isSupportedFile(fileName: string): boolean {
   const lower = fileName.toLowerCase();
+  const baseName = lower.split(/[\\/]/).pop() || '';
+  if (['readme', 'license', 'changelog', 'contributing', 'todo', 'authors', 'notes'].includes(baseName)) {
+    return true;
+  }
   return SUPPORTED_EXTENSIONS.some(ext => lower.endsWith(ext));
 }
 
-export function getFileTypeInfo(fileName: string): FileTypeInfo {
+export function getFileTypeInfo(fileName: string, content?: string): FileTypeInfo {
   const lower = fileName.toLowerCase();
   const extMatch = lower.match(/\.([a-z0-9]+)$/);
   const ext = extMatch ? `.${extMatch[1]}` : '';
 
+  // Ưu tiên kiểm tra định dạng thông qua các ký tự trong nội dung file nếu có content
+  if (content !== undefined && content.trim().length > 0) {
+    const detectedLang = detectContentLanguage(content, fileName);
+
+    switch (detectedLang) {
+      case 'markdown':
+        return {
+          extension: ext || '.md',
+          language: 'markdown',
+          isMarkdown: true,
+          category: 'markdown',
+          icon: FileText,
+          iconColor: '#6366f1',
+          badge: 'MD'
+        };
+
+      case 'json':
+        return {
+          extension: ext || '.json',
+          language: 'json',
+          isMarkdown: false,
+          category: 'data',
+          icon: FileJson,
+          iconColor: '#f59e0b',
+          badge: 'JSON'
+        };
+
+      case 'html':
+        return {
+          extension: ext || '.html',
+          language: 'html',
+          isMarkdown: false,
+          category: 'code',
+          icon: Code2,
+          iconColor: '#ea580c',
+          badge: 'HTML'
+        };
+
+      case 'xml':
+        return {
+          extension: ext || '.xml',
+          language: 'xml',
+          isMarkdown: false,
+          category: 'data',
+          icon: Code2,
+          iconColor: '#f97316',
+          badge: 'XML'
+        };
+
+      case 'yaml':
+        return {
+          extension: ext || '.yaml',
+          language: 'yaml',
+          isMarkdown: false,
+          category: 'data',
+          icon: Braces,
+          iconColor: '#e11d48',
+          badge: 'YAML'
+        };
+
+      case 'python':
+        return {
+          extension: ext || '.py',
+          language: 'python',
+          isMarkdown: false,
+          category: 'code',
+          icon: FileCode,
+          iconColor: '#10b981',
+          badge: 'PY'
+        };
+
+      case 'typescript':
+        return {
+          extension: ext || '.ts',
+          language: 'typescript',
+          isMarkdown: false,
+          category: 'code',
+          icon: FileCode2,
+          iconColor: '#3b82f6',
+          badge: ext === '.tsx' ? 'TSX' : 'TS'
+        };
+
+      case 'javascript':
+        return {
+          extension: ext || '.js',
+          language: 'javascript',
+          isMarkdown: false,
+          category: 'code',
+          icon: FileCode2,
+          iconColor: '#eab308',
+          badge: ext === '.jsx' ? 'JSX' : 'JS'
+        };
+
+      case 'csharp':
+        return {
+          extension: ext || '.cs',
+          language: 'csharp',
+          isMarkdown: false,
+          category: 'code',
+          icon: FileCode,
+          iconColor: '#a855f7',
+          badge: 'C#'
+        };
+
+      case 'shell':
+        return {
+          extension: ext || '.sh',
+          language: 'shell',
+          isMarkdown: false,
+          category: 'code',
+          icon: Terminal,
+          iconColor: '#64748b',
+          badge: 'CLI'
+        };
+
+      case 'sql':
+        return {
+          extension: ext || '.sql',
+          language: 'sql',
+          isMarkdown: false,
+          category: 'data',
+          icon: Database,
+          iconColor: '#0284c7',
+          badge: 'SQL'
+        };
+    }
+  }
+
+  // Fallback: Kiểm tra định dạng theo đuôi mở rộng file (Extension-based)
   switch (ext) {
     case '.md':
     case '.markdown':

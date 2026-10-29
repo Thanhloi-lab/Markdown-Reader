@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Copy, Check } from 'lucide-react';
 import hljs from 'highlight.js';
 import { MermaidBlock } from './MermaidBlock';
+import { useTranslation } from '../../context/I18nContext';
 
 const escapeHtml = (str: string) =>
   str
@@ -16,8 +17,9 @@ interface CodeBlockProps {
   value: string;
 }
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
+export const CodeBlock: React.FC<CodeBlockProps> = React.memo(({ language, value }) => {
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
 
   if (language === 'mermaid') {
     return <MermaidBlock chart={value} />;
@@ -73,7 +75,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
             backgroundColor: copied ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255, 255, 255, 0.08)',
             color: copied ? '#4ade80' : 'var(--md-text-primary)'
           }}
-          title={copied ? 'Đã sao chép' : 'Sao chép mã'}
+          title={copied ? t.common.copied : t.common.copy}
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
         </button>
@@ -94,4 +96,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
       </pre>
     </div>
   );
-};
+});
+
+CodeBlock.displayName = 'CodeBlock';

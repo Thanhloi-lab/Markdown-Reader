@@ -8,6 +8,7 @@ import {
   X
 } from 'lucide-react';
 import { TocItem } from '@markdown-reader/core';
+import { useTranslation } from '../../context/I18nContext';
 import { TocTab } from './TocTab';
 import { FileTreeTab, FileNode } from './FileTreeTab';
 
@@ -60,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const { t } = useTranslation();
 
   // Lưu trạng thái các thư mục đã mở rộng để không bị reset khi chuyển đổi giữa tab Files và TOC
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
@@ -151,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
           }}
-          title="Mở thanh bên"
+          title={t.sidebar.openSidebar}
         >
           <PanelLeftOpen size={18} />
         </button>
@@ -199,7 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
                 }
               }}
-              title="Cây thư mục tập tin"
+              title={t.sidebar.filesTab}
             >
               <Folder size={17} />
             </button>
@@ -227,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
               }
             }}
-            title="Chỉ mục & Mục lục (Outline)"
+            title={t.sidebar.tocTab}
           >
             <AlignLeft size={17} />
           </button>
@@ -245,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               backgroundColor: isSearchOpen ? 'var(--md-bg-hover)' : 'transparent',
               color: isSearchOpen ? 'var(--md-accent)' : 'var(--md-text-secondary)'
             }}
-            title="Tìm kiếm trong mục lục / file"
+            title={t.sidebar.searchTooltip}
           >
             <Search size={16} />
           </button>
@@ -262,7 +264,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
               (e.currentTarget as HTMLElement).style.color = 'var(--md-text-secondary)';
             }}
-            title="Thu gọn thanh bên"
+            title={t.sidebar.closeSidebar}
           >
             <PanelLeftClose size={16} />
           </button>
@@ -282,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Search size={13} style={{ color: 'var(--md-text-muted)' }} />
             <input
               type="text"
-              placeholder={activeTab === 'toc' ? 'Lọc tiêu đề...' : 'Lọc tập tin...'}
+              placeholder={t.sidebar.searchPlaceholder}
               value={searchFilter}
               onChange={e => setSearchFilter(e.target.value)}
               className="w-full bg-transparent outline-none"

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TocItem } from '@markdown-reader/core';
+import { useTranslation } from '../../context/I18nContext';
 
 interface TocTabProps {
   items: TocItem[];
@@ -14,6 +15,8 @@ export const TocTab: React.FC<TocTabProps> = ({
   onSelectHeading,
   searchFilter = ''
 }) => {
+  const { locale, t } = useTranslation();
+
   const filteredItems = searchFilter
     ? items.filter(item => item.title.toLowerCase().includes(searchFilter.toLowerCase()))
     : items;
@@ -21,7 +24,9 @@ export const TocTab: React.FC<TocTabProps> = ({
   if (filteredItems.length === 0) {
     return (
       <div className="p-4 text-center text-xs" style={{ color: 'var(--md-text-muted)' }}>
-        {searchFilter ? 'Không tìm thấy mục nào' : 'Tài liệu chưa có tiêu đề nào (H1-H6)'}
+        {searchFilter
+          ? (locale === 'vi' ? 'Không tìm thấy mục nào' : 'No matching headings found')
+          : t.sidebar.noHeadings}
       </div>
     );
   }

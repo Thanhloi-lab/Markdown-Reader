@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Filter, Check, X, CheckSquare, Square } from 'lucide-react';
 import { getFileTypeInfo } from '../../utils/fileTypeUtils';
+import { useTranslation } from '../../context/I18nContext';
 
 interface ExtensionFilterMenuProps {
   allExtensions: { ext: string; count: number }[];
@@ -19,6 +20,7 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const { locale, t } = useTranslation();
 
   // Đóng popover khi click ra ngoài
   useEffect(() => {
@@ -50,10 +52,10 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
           backgroundColor: hasFilterActive ? 'var(--md-bg-active)' : 'var(--md-bg-secondary)',
           color: hasFilterActive ? 'var(--md-accent)' : 'var(--md-text-primary)'
         }}
-        title="Lọc ẩn / hiện các loại định dạng tệp"
+        title={t.sidebar.filterLabel}
       >
         <Filter size={13} style={{ color: hasFilterActive ? 'var(--md-accent)' : undefined }} />
-        <span>Lọc ({enabledExtensions.size}/{allExtensions.length})</span>
+        <span>{locale === 'vi' ? 'Lọc' : 'Filter'} ({enabledExtensions.size}/{allExtensions.length})</span>
       </button>
 
       {/* Popover Dropdown */}
@@ -69,7 +71,7 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between pb-2 border-b mb-2" style={{ borderColor: 'var(--md-border-muted)' }}>
             <span className="font-semibold text-xs tracking-wide" style={{ color: 'var(--md-text-heading)' }}>
-              Định dạng tệp hiển thị
+              {locale === 'vi' ? 'Định dạng tệp hiển thị' : 'File formats to display'}
             </span>
             <div className="flex items-center gap-2 text-[11px]">
               <button
@@ -77,14 +79,14 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
                 className="hover:underline font-medium"
                 style={{ color: 'var(--md-accent)' }}
               >
-                Tất cả
+                {t.common.all}
               </button>
               <span className="opacity-30">•</span>
               <button
                 onClick={onDeselectAll}
                 className="hover:underline opacity-70 hover:opacity-100"
               >
-                Bỏ chọn
+                {locale === 'vi' ? 'Bỏ chọn' : 'Clear'}
               </button>
             </div>
           </div>
@@ -92,7 +94,7 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
           {/* Danh sách các định dạng hiện có */}
           <div className="max-h-60 overflow-y-auto space-y-1 custom-scrollbar pr-1">
             {allExtensions.length === 0 ? (
-              <div className="text-center py-3 text-xs opacity-60">Chưa có tệp nào</div>
+              <div className="text-center py-3 text-xs opacity-60">{t.sidebar.noFiles}</div>
             ) : (
               allExtensions.map(({ ext, count }) => {
                 const isChecked = enabledExtensions.has(ext);
@@ -113,12 +115,12 @@ export const ExtensionFilterMenu: React.FC<ExtensionFilterMenuProps> = ({
                       />
                       <IconComponent size={14} style={{ color: typeInfo.iconColor }} className="shrink-0" />
                       <span className="font-mono font-medium truncate">
-                        {ext || '(không có đuôi)'}
+                        {ext || (locale === 'vi' ? '(không đuôi)' : '(no extension)')}
                       </span>
                     </div>
 
                     <span className="text-[10px] font-mono opacity-60 ml-2 shrink-0">
-                      {count} tệp
+                      {count} {locale === 'vi' ? 'tệp' : 'files'}
                     </span>
                   </label>
                 );

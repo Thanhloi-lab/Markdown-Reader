@@ -24,7 +24,7 @@ export const CodeFileViewer: React.FC<CodeFileViewerProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [localContent, setLocalContent] = useState(content);
-  const typeInfo = getFileTypeInfo(fileName);
+  const typeInfo = useMemo(() => getFileTypeInfo(fileName, content), [fileName, content]);
 
   // Tự động đồng bộ và định dạng đẹp (pretty-print) ngay khi mở file JSON
   useEffect(() => {

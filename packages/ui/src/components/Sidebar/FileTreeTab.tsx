@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { getFileTypeInfo } from '../../utils/fileTypeUtils';
 import { ExtensionFilterMenu } from './ExtensionFilterMenu';
+import { useTranslation } from '../../context/I18nContext';
 
 export interface FileNode {
   id: string;
@@ -76,6 +77,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
   };
   const [showOnlyPinned, setShowOnlyPinned] = useState(false);
   const [isPinnedSectionExpanded, setIsPinnedSectionExpanded] = useState(true);
+  const { locale, t } = useTranslation();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -285,7 +287,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
                   onRemoveFolder(node.id);
                 }}
                 className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-neutral-400 hover:text-red-400 transition-all shrink-0"
-                title={`Gỡ bỏ ${node.name} khỏi workspace`}
+                title={`${t.sidebar.removeFolder}: ${node.name}`}
               >
                 <X size={12} />
               </button>
@@ -301,7 +303,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
                   className="py-1.5 text-[11px] italic opacity-50 select-none"
                   style={{ paddingLeft: `${(depth + 1) * 14 + 18}px`, color: 'var(--md-text-muted)' }}
                 >
-                  (Thư mục trống)
+                  {locale === 'vi' ? '(Thư mục trống)' : '(Empty folder)'}
                 </div>
               ) : null}
             </div>
@@ -403,7 +405,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
                 ? 'opacity-100 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 hover:scale-120 drop-shadow-xs'
                 : 'opacity-0 group-hover:opacity-75 hover:opacity-100 text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 hover:scale-115'
             }`}
-            title={isPinned ? 'Bỏ ghim tệp này (Unpin)' : 'Ghim tệp này lên đầu (Pin)'}
+            title={isPinned ? t.sidebar.unpinFile : t.sidebar.pinFile}
           >
             <Pin
               size={16}
@@ -441,10 +443,10 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             onMouseLeave={e => {
               (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--md-bg-secondary)';
             }}
-            title="Thêm thư mục khác vào Workspace để xem song song"
+            title={t.sidebar.addFolder}
           >
             <FolderPlus size={13} style={{ color: 'var(--md-accent)' }} />
-            <span>Thêm thư mục</span>
+            <span>{t.sidebar.addFolder}</span>
           </button>
         )}
 
@@ -465,7 +467,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             onMouseLeave={e => {
               (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--md-bg-secondary)';
             }}
-            title="Làm mới / Đồng bộ lại toàn bộ thư mục và file từ đĩa"
+            title={t.sidebar.syncFolders}
           >
             <RefreshCw
               size={13}
@@ -491,8 +493,8 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             }}
             title={
               showOnlyPinned
-                ? 'Hiển thị lại toàn bộ cây thư mục'
-                : 'Chỉ hiển thị các tệp đã ghim'
+                ? (locale === 'vi' ? 'Hiển thị lại toàn bộ cây thư mục' : 'Show full folder tree')
+                : (locale === 'vi' ? 'Chỉ hiển thị các tệp đã ghim' : 'Show pinned files only')
             }
           >
             <Pin
@@ -500,7 +502,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
               className={showOnlyPinned ? 'fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400' : 'text-amber-500 dark:text-amber-400'}
               strokeWidth={2.2}
             />
-            <span>Ghim ({pinnedFileNodes.length})</span>
+            <span>{locale === 'vi' ? `Ghim (${pinnedFileNodes.length})` : `Pinned (${pinnedFileNodes.length})`}</span>
           </button>
         )}
 
@@ -527,7 +529,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             }}
           >
             <FolderInput size={14} style={{ color: 'var(--md-accent)' }} />
-            <span>Mở thư mục máy tính</span>
+            <span>{t.sidebar.openFolder}</span>
           </button>
         )}
       </div>
@@ -546,7 +548,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
             <div className="flex items-center gap-1.5">
               {isPinnedSectionExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               <Pin size={16} className="text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400 shrink-0" strokeWidth={2.5} />
-              <span>Tệp đã ghim ({pinnedFileNodes.length})</span>
+              <span>{locale === 'vi' ? `Tệp đã ghim (${pinnedFileNodes.length})` : `Pinned files (${pinnedFileNodes.length})`}</span>
             </div>
           </div>
 
@@ -600,7 +602,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
                           onTogglePin(file.path);
                         }}
                         className="p-1.5 rounded text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 hover:scale-120 transition-transform shrink-0 drop-shadow-xs"
-                        title="Bỏ ghim tệp này"
+                        title={t.sidebar.unpinFile}
                       >
                         <Pin size={16} className="fill-amber-500 dark:fill-amber-400 text-amber-500 dark:text-amber-400" strokeWidth={2.5} />
                       </button>
@@ -615,7 +617,7 @@ export const FileTreeTab: React.FC<FileTreeTabProps> = ({
 
       {files.length === 0 ? (
         <div className="p-4 text-center text-xs" style={{ color: 'var(--md-text-muted)' }}>
-          Chưa mở thư mục hoặc không có file nào.
+          {t.sidebar.noFiles}
         </div>
       ) : (
         <div className="space-y-0.5">

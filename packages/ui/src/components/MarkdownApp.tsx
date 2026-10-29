@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { extractToc, formatMarkdown } from '@markdown-reader/core';
 import { Sidebar, SidebarTab } from './Sidebar/Sidebar';
 import { FileNode } from './Sidebar/FileTreeTab';
@@ -73,9 +73,38 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
 
   const viewerContainerRef = useRef<HTMLDivElement>(null);
+  const isProgrammaticScrollRef = useRef<boolean>(false);
+  const programmaticScrollTimerRef = useRef<any>(null);
 
-  // Nhận diện loại file hiện tại (Markdown hay Code/Data như JSON, XML, CS, TS...)
-  const fileType = useMemo(() => getFileTypeInfo(fileName), [fileName]);
+  // Lắng nghe khi người dùng tương tác cuộn thủ công (chuột, phím, chạm, scrollend)
+  // để giải phóng cờ programmatic, đưa scrollspy về trạng thái bình thường
+  useEffect(() => {
+    const scrollEl = viewerContainerRef.current;
+    if (!scrollEl) return;
+
+    const cancelProgrammaticScroll = () => {
+      if (isProgrammaticScrollRef.current) {
+        isProgrammaticScrollRef.current = false;
+        if (programmaticScrollTimerRef.current) {
+          clearTimeout(programmaticScrollTimerRef.current);
+          programmaticScrollTimerRef.current = null;
+        }
+      }
+    };
+
+    scrollEl.addEventListener('wheel', cancelProgrammaticScroll, { passive: true });
+    scrollEl.addEventListener('touchmove', cancelProgrammaticScroll, { passive: true });
+    scrollEl.addEventListener('scrollend', cancelProgrammaticScroll, { passive: true });
+
+    return () => {
+      scrollEl.removeEventListener('wheel', cancelProgrammaticScroll);
+      scrollEl.removeEventListener('touchmove', cancelProgrammaticScroll);
+      scrollEl.removeEventListener('scrollend', cancelProgrammaticScroll);
+    };
+  }, []);
+
+  // Nhận diện loại file hiện tại dựa trên ký tự nội dung kết hợp đuôi mở rộng
+  const fileType = useMemo(() => getFileTypeInfo(fileName, content), [fileName, content]);
 
   // Cập nhật khi prop content hoặc activeFilePath thay đổi
   useEffect(() => {
@@ -98,10 +127,30 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
     return extractToc(content);
   }, [content, fileType.isMarkdown]);
 
-  // Xử lý khi người dùng chọn tiêu đề trên TOC
-  const handleSelectHeading = (slug: string) => {
+  // Cập nhật heading đang active từ Scrollspy, bỏ qua khi đang trong tiến trình cuộn do người dùng click
+  const handleActiveHeadingChange = useCallback((slug: string) => {
+    if (isProgrammaticScrollRef.current) {
+      // Đang trong quá trình cuộn mượt tới heading được chỉ định,
+      // tạm dừng cập nhật slug trung gian để không gây giật giao diện mục lục
+      return;
+    }
+    setActiveHeadingSlug(slug);
+  }, []);
+
+  // Xử lý khi người dùng chọn tiêu đề trên TOC hoặc click anchor link nội bộ
+  const handleSelectHeading = useCallback((slug: string) => {
     setActiveHeadingSlug(slug);
     if (!slug) return;
+
+    // Đặt cờ đang cuộn theo chỉ định
+    isProgrammaticScrollRef.current = true;
+    if (programmaticScrollTimerRef.current) {
+      clearTimeout(programmaticScrollTimerRef.current);
+    }
+    programmaticScrollTimerRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+      programmaticScrollTimerRef.current = null;
+    }, 800);
 
     try {
       // 1. Ưu tiên document.getElementById vì đây là cách an toàn và tối ưu nhất,
@@ -137,7 +186,7 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
     } catch (err) {
       console.warn('Lỗi khi cuộn tới heading:', err);
     }
-  };
+  }, []);
 
   // Xử lý định dạng tài liệu (Markdown hoặc JSON)
   const handleFormat = async () => {
@@ -178,10 +227,10 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
   };
 
   // Điều hướng bằng liên kết: tự động chuyển sang tab 'files' để nhìn rõ file đang nhảy tới
-  const handleInternalNavigateLink = (href: string) => {
+  const handleInternalNavigateLink = useCallback((href: string) => {
     setSidebarTab('files');
     onNavigateLink?.(href);
-  };
+  }, [onNavigateLink]);
 
   return (
     <div
@@ -247,7 +296,7 @@ export const MarkdownApp: React.FC<MarkdownAppProps> = ({
                 <MarkdownViewer
                   key={`md-${activeFilePath || fileName}`}
                   content={content}
-                  onActiveHeadingChange={setActiveHeadingSlug}
+                  onActiveHeadingChange={handleActiveHeadingChange}
                   onSelectHeading={handleSelectHeading}
                   onNavigateLink={handleInternalNavigateLink}
                   scrollContainerRef={viewerContainerRef}

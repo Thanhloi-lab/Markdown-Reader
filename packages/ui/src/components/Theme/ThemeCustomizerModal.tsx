@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, RotateCcw, Palette, Check, Settings, Type } from 'lucide-react';
+import { X, RotateCcw, Palette, Check, Settings, Type, Globe } from 'lucide-react';
 import { supportedFonts } from '@markdown-reader/core';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from '../../context/I18nContext';
 
 interface ThemeCustomizerModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     resetToDefault,
     availableThemes
   } = useTheme();
+
+  const { locale, setLocale, t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -42,7 +45,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
           <div className="flex items-center gap-2">
             <Settings size={18} style={{ color: 'var(--md-accent)' }} />
             <h3 className="font-semibold text-base" style={{ color: 'var(--md-text-heading)' }}>
-              Cài đặt Giao diện & Phông chữ
+              {t.settings.modalTitle}
             </h3>
           </div>
           <button
@@ -55,38 +58,92 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6 text-sm">
+          {/* Lựa chọn Ngôn ngữ hiển thị (Display Language) */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Globe size={14} style={{ color: 'var(--md-accent)' }} />
+              <label className="text-xs font-semibold uppercase tracking-wider opacity-70">
+                {t.settings.languageSection}
+              </label>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setLocale('vi')}
+                className="flex items-center justify-between p-3 rounded-lg border text-left transition-all cursor-pointer"
+                style={{
+                  backgroundColor: locale === 'vi' ? 'var(--md-bg-active)' : 'var(--md-bg-primary)',
+                  borderColor: locale === 'vi' ? 'var(--md-accent)' : 'var(--md-border)',
+                  color: locale === 'vi' ? 'var(--md-accent)' : 'var(--md-text-primary)'
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🇻🇳</span>
+                  <span className="font-medium text-xs">Tiếng Việt</span>
+                </div>
+                {locale === 'vi' && <Check size={15} />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLocale('en')}
+                className="flex items-center justify-between p-3 rounded-lg border text-left transition-all cursor-pointer"
+                style={{
+                  backgroundColor: locale === 'en' ? 'var(--md-bg-active)' : 'var(--md-bg-primary)',
+                  borderColor: locale === 'en' ? 'var(--md-accent)' : 'var(--md-border)',
+                  color: locale === 'en' ? 'var(--md-accent)' : 'var(--md-text-primary)'
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🇺🇸</span>
+                  <span className="font-medium text-xs">English</span>
+                </div>
+                {locale === 'en' && <Check size={15} />}
+              </button>
+            </div>
+          </div>
+
           {/* Preset Themes */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-2.5 opacity-70">
-              Chủ đề cài sẵn (Theme Presets)
+              {t.settings.themePresets}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {availableThemes.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t)}
-                  className="flex items-center justify-between p-3 rounded-lg border text-left transition-all"
-                  style={{
-                    backgroundColor: t.id === theme.id ? 'var(--md-bg-active)' : 'var(--md-bg-primary)',
-                    borderColor: t.id === theme.id ? 'var(--md-accent)' : 'var(--md-border)',
-                    color: t.id === theme.id ? 'var(--md-accent)' : 'var(--md-text-primary)'
-                  }}
-                >
-                  <span className="font-medium text-xs">{t.name}</span>
-                  {t.id === theme.id && <Check size={15} />}
-                </button>
-              ))}
+              {availableThemes.map(item => {
+                const themeName =
+                  item.id === 'obsidian-dark'
+                    ? t.themes.obsidianDark
+                    : item.id === 'clean-light'
+                    ? t.themes.cleanLight
+                    : item.name;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setTheme(item)}
+                    className="flex items-center justify-between p-3 rounded-lg border text-left transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: item.id === theme.id ? 'var(--md-bg-active)' : 'var(--md-bg-primary)',
+                      borderColor: item.id === theme.id ? 'var(--md-accent)' : 'var(--md-border)',
+                      color: item.id === theme.id ? 'var(--md-accent)' : 'var(--md-text-primary)'
+                    }}
+                  >
+                    <span className="font-medium text-xs">{themeName}</span>
+                    {item.id === theme.id && <Check size={15} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Color Customization */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-3 opacity-70">
-              Màu sắc văn bản & Giao diện (Dynamic Colors)
+              {t.settings.customColors}
             </label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu chữ nội dung:</span>
+                <span className="text-xs block mb-1 opacity-80">{t.settings.textColor}:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -99,7 +156,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
               </div>
 
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu chữ tiêu đề (Heading):</span>
+                <span className="text-xs block mb-1 opacity-80">{t.settings.headingColor}:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -112,7 +169,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
               </div>
 
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu nền chính (Reader):</span>
+                <span className="text-xs block mb-1 opacity-80">{t.settings.bgColor}:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -125,7 +182,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
               </div>
 
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu điểm nhấn (Accent/TOC):</span>
+                <span className="text-xs block mb-1 opacity-80">{t.settings.accentColor}:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -138,7 +195,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
               </div>
 
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu chữ highlight (`inline code`):</span>
+                <span className="text-xs block mb-1 opacity-80">{t.settings.codeTextColor}:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -165,11 +222,11 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
           {/* Diagram Customization */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-3 opacity-70">
-              Tùy chỉnh biểu đồ (Mermaid Diagrams)
+              Mermaid Diagrams
             </label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-xs block mb-1 opacity-80">Chủ đề biểu đồ:</span>
+                <span className="text-xs block mb-1 opacity-80">Diagram Theme:</span>
                 <select
                   value={theme.diagram.theme}
                   onChange={e =>
@@ -193,7 +250,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
               </div>
 
               <div>
-                <span className="text-xs block mb-1 opacity-80">Màu đường nối (Line Color):</span>
+                <span className="text-xs block mb-1 opacity-80">Line Color:</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -212,10 +269,10 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             <div className="flex items-center justify-between mb-2.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider opacity-70">
                 <Type size={14} style={{ color: 'var(--md-accent)' }} />
-                <span>Phông chữ đọc (Font Family)</span>
+                <span>{t.settings.typography}</span>
               </label>
               <span className="text-[11px] opacity-60">
-                5 phông chữ phổ thông • Đa ngôn ngữ
+                5 fonts • Multilingual
               </span>
             </div>
 
@@ -224,6 +281,8 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                 const isSelected =
                   theme.typography.fontId === font.id ||
                   theme.typography.fontFamily === font.fontFamily;
+
+                const fontDesc = t.fonts[font.id]?.description || font.description;
 
                 return (
                   <button
@@ -271,7 +330,6 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                       {isSelected && <Check size={15} className="shrink-0" />}
                     </div>
 
-                    {/* Dòng xem trước không bold, không nghiêng */}
                     <div
                       className="text-xs font-normal not-italic opacity-80 truncate"
                       style={{
@@ -281,7 +339,13 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                         color: 'var(--md-text-secondary)'
                       }}
                     >
-                      Cộng hòa Xã hội Chủ nghĩa Việt Nam • Markdown Reader 123
+                      {locale === 'vi'
+                        ? 'Cộng hòa Xã hội Chủ nghĩa Việt Nam • Markdown Reader 123'
+                        : 'The quick brown fox jumps over the lazy dog • Markdown Reader 123'}
+                    </div>
+
+                    <div className="text-[11px] opacity-60">
+                      {fontDesc}
                     </div>
                   </button>
                 );
@@ -289,7 +353,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             </div>
 
             <label className="block text-xs font-semibold uppercase tracking-wider mb-2 opacity-70">
-              Cỡ chữ đọc (Font Size)
+              Font Size
             </label>
             <div className="flex items-center gap-3">
               {['14px', '16px', '18px', '20px'].map(size => (
@@ -323,14 +387,14 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs text-neutral-400 hover:text-white transition-colors"
           >
             <RotateCcw size={13} />
-            <span>Khôi phục mặc định</span>
+            <span>{t.settings.resetDefault}</span>
           </button>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded text-xs font-medium text-white transition-opacity shadow"
             style={{ backgroundColor: 'var(--md-accent)' }}
           >
-            Đóng
+            {t.common.close}
           </button>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ThemeProvider,
+  I18nProvider,
+  useTranslation,
   MarkdownApp,
   FileNode,
   SyncNotification
@@ -645,64 +647,66 @@ export const ExtensionApp: React.FC<ExtensionAppProps> = ({ initialRawContent = 
   };
 
   return (
-    <ThemeProvider>
-      <div
-        className="relative h-screen w-screen overflow-hidden font-sans"
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <MarkdownApp
-          initialContent={content}
-          initialFileName={fileName}
-          activeFilePath={activeFilePath}
-          files={files}
-          pinnedFilePaths={pinnedFilePaths}
-          onTogglePin={handleTogglePin}
-          onOpenFolder={isLocalFile ? handleOpenLocalFolder : undefined}
-          onAddFolder={isLocalFile ? handleOpenLocalFolder : undefined}
-          onSync={handleSync}
-          isSyncing={isSyncing}
-          syncNotifications={syncNotifications}
-          onDismissSyncNotification={id =>
-            setSyncNotifications(prev => prev.filter(n => n.id !== id))
-          }
-          onFileSelect={handleSelectFile}
-          onContentChange={setContent}
-          hideFilesTab={isWebUrl}
-          sidebarBanner={undefined}
-          onBreadcrumbFolderClick={handleBreadcrumbFolderClick}
-          onLoadChildren={handleLoadFolderChildren}
-        />
+    <I18nProvider>
+      <ThemeProvider>
+        <div
+          className="relative h-screen w-screen overflow-hidden font-sans"
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <MarkdownApp
+            initialContent={content}
+            initialFileName={fileName}
+            activeFilePath={activeFilePath}
+            files={files}
+            pinnedFilePaths={pinnedFilePaths}
+            onTogglePin={handleTogglePin}
+            onOpenFolder={isLocalFile ? handleOpenLocalFolder : undefined}
+            onAddFolder={isLocalFile ? handleOpenLocalFolder : undefined}
+            onSync={handleSync}
+            isSyncing={isSyncing}
+            syncNotifications={syncNotifications}
+            onDismissSyncNotification={id =>
+              setSyncNotifications(prev => prev.filter(n => n.id !== id))
+            }
+            onFileSelect={handleSelectFile}
+            onContentChange={setContent}
+            hideFilesTab={isWebUrl}
+            sidebarBanner={undefined}
+            onBreadcrumbFolderClick={handleBreadcrumbFolderClick}
+            onLoadChildren={handleLoadFolderChildren}
+          />
 
-        {/* Lớp phủ trực quan khi Kéo - Thả thư mục (Drag & Drop Overlay) */}
-        {isDraggingOver && (
-          <div
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center p-8 backdrop-blur-md transition-all pointer-events-none"
-            style={{
-              backgroundColor: 'rgba(13, 15, 20, 0.85)',
-              border: '3px dashed var(--md-accent)'
-            }}
-          >
+          {/* Lớp phủ trực quan khi Kéo - Thả thư mục (Drag & Drop Overlay) */}
+          {isDraggingOver && (
             <div
-              className="p-6 rounded-2xl flex flex-col items-center gap-3 shadow-2xl text-center max-w-md animate-bounce"
+              className="absolute inset-0 z-50 flex flex-col items-center justify-center p-8 backdrop-blur-md transition-all pointer-events-none"
               style={{
-                backgroundColor: 'var(--md-bg-secondary)',
-                border: '1px solid var(--md-border)'
+                backgroundColor: 'rgba(13, 15, 20, 0.85)',
+                border: '3px dashed var(--md-accent)'
               }}
             >
-              <UploadCloud size={48} style={{ color: 'var(--md-accent)' }} />
-              <h3 className="text-base font-bold" style={{ color: 'var(--md-text-heading)' }}>
-                Thả thư mục vào đây
-              </h3>
-              <p className="text-xs opacity-80" style={{ color: 'var(--md-text-muted)' }}>
-                Markdown Reader sẽ tự động quét đệ quy toàn bộ thư mục và hiển thị đầy đủ cây tài liệu!
-              </p>
+              <div
+                className="p-6 rounded-2xl flex flex-col items-center gap-3 shadow-2xl text-center max-w-md animate-bounce"
+                style={{
+                  backgroundColor: 'var(--md-bg-secondary)',
+                  border: '1px solid var(--md-border)'
+                }}
+              >
+                <UploadCloud size={48} style={{ color: 'var(--md-accent)' }} />
+                <h3 className="text-base font-bold" style={{ color: 'var(--md-text-heading)' }}>
+                  Thả thư mục vào đây / Drop folder here
+                </h3>
+                <p className="text-xs opacity-80" style={{ color: 'var(--md-text-muted)' }}>
+                  Markdown Reader sẽ tự động quét và hiển thị đầy đủ cây tài liệu!
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </ThemeProvider>
+          )}
+        </div>
+      </ThemeProvider>
+    </I18nProvider>
   );
 };

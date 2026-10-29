@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../context/I18nContext';
 
 interface QuickEditorProps {
   content: string;
@@ -6,6 +7,8 @@ interface QuickEditorProps {
 }
 
 export const QuickEditor: React.FC<QuickEditorProps> = ({ content, onChange }) => {
+  const { locale, t } = useTranslation();
+
   return (
     <div
       className="h-full flex flex-col p-4 border-r overflow-hidden transition-colors"
@@ -16,7 +19,7 @@ export const QuickEditor: React.FC<QuickEditorProps> = ({ content, onChange }) =
     >
       <div className="flex items-center justify-between pb-2 mb-2 border-b text-xs font-mono opacity-70" style={{ borderColor: 'var(--md-border-muted)' }}>
         <span>Markdown Source</span>
-        <span>{content.length} ký tự</span>
+        <span>{content.length} {locale === 'vi' ? 'ký tự' : 'characters'}</span>
       </div>
       <textarea
         value={content}
@@ -26,7 +29,7 @@ export const QuickEditor: React.FC<QuickEditorProps> = ({ content, onChange }) =
           color: 'var(--md-text-primary)',
           fontFamily: 'var(--md-code-font-family)'
         }}
-        placeholder="Nhập hoặc dán nội dung Markdown tại đây..."
+        placeholder={t.editor.placeholder}
         spellCheck={false}
       />
     </div>
